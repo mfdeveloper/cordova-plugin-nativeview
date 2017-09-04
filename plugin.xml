@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
+    id="cordova-plugin-nativeview"
+    version="0.0.1">
+    <name>Cordova NativeView Plugin</name>
+    <description>
+        Start or Back to a UIViewController(ios)/Activity(Android) 
+        relative to your cordova app
+    </description>
+    <license>MIT</license>
+    <keywords>cordova,activity,UIViewController,back</keywords>
+    <repo>https://github.com/mfdeveloper/cordova-plugin-nativeview.git</repo>
+    <issue>https://github.com/mfdeveloper/cordova-plugin-nativeview/issues</issue>
+
+    <js-module src="www/plugin.js" name="NativeView">
+        <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
+        <clobbers target="window.NativeView" />
+    </js-module>
+
+    <!-- android -->
+    <platform name="android">
+      <config-file target="res/xml/config.xml" parent="/*">
+        <feature name="NativeView">
+          <param name="android-package" value="br.com.mfdeveloper.cordova.NativeView" />
+          <param name="onload" value="true" />
+        </feature>
+      </config-file>
+
+      <source-file src="src/android/NativeView.java" target-dir="src/br/com/mfdeveloper/cordova" />
+    </platform>
+
+    <!-- ios -->
+    <platform name="ios">
+        <config-file target="config.xml" parent="/*">
+            <feature name="NativeView">
+                <param name="ios-package" value="CDVNativeView" />
+                <param name="onload" value="true" />
+            </feature>
+        </config-file>
+
+         <source-file src="src/ios/CDVNativeView.swift" />
+    </platform>
+</plugin>

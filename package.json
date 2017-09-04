@@ -1,0 +1,35 @@
+{
+  "name": "cordova-plugin-nativeview",
+  "version": "0.0.1",
+  "types": "./types/index.d.ts",
+  "description": "Start or Back to a native screen/page",
+  "author": {
+    "name": "Michel Felipe",
+    "email": "mfelipeof@gmail.com"
+  },
+  "cordova": {
+    "id": "cordova-plugin-nativeview",
+    "platforms": [
+      "android",
+      "ios"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mfdeveloper/cordova-plugin-nativeview"
+  },
+  "bugs": {
+    "url": "https://github.com/mfdeveloper/cordova-plugin-nativeview/issues"
+  },
+  "keywords": [
+    "cordova",
+    "activity",
+    "back",
+    "UIViewController",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova-ios",
+    "cordova-tizen"
+  ],
+  "license": "MIT"
+}
