@@ -1,6 +1,6 @@
 ---
-title: File
-description: Read/write files on the device.
+title: NativeView
+description: Starts native view from a cordova app.
 ---
 
 # cordova-plugin-nativeview
