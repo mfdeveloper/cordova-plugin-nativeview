@@ -1,5 +1,10 @@
 import UIKit
 
+enum InstantiateViewControllerError: Error  {
+    case notFound(String)
+    case nameNotDefined(String)
+}
+
 ///
 /// IOS implementation for Native view actions from cordova apps
 ///
@@ -13,19 +18,20 @@ class CDVNativeView: CDVPlugin {
     }
     
     /**
-        Show a native view from a cordova app.
-        If exists a navigationController associated with your cordova
-        UIViewController, back to your main view.
-
-        - Parameters:
-            - command: Get arguments and callback status from JS
-    */
+     Show a native view from a cordova app.
+     If exists a navigationController associated with your cordova
+     UIViewController, back to your main view.
+     
+     - Parameters:
+     - command: Get arguments and callback status from JS
+     */
     func show(_ command: CDVInvokedUrlCommand) {
         
         var pluginResult = CDVPluginResult(status: CDVCommandStatus_ERROR)
         
         var className = command.argument(at: 0) as? String ?? ""
         var storyboardName = ""
+        var viewController: UIViewController? = nil
         
         if command.arguments.count > 1 {
             
@@ -43,13 +49,14 @@ class CDVNativeView: CDVPlugin {
             if (self.viewController.navigationController?.viewControllers.count)! > 1 {
                 self.viewController.navigationController?.popViewController(animated: true)
             }else{
-                self.viewController.navigationController?.pushViewController(UIViewController.init(nibName: className, bundle: nil), animated: true)
+                
+                viewController = self.tryInstantiateView(name: className)
+                
+                self.viewController.navigationController?.pushViewController(viewController!, animated: true)
             }
             
             pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
-        }else{
-            
-            let viewController: UIViewController
+        }else if className.characters.count > 0 {
             
             if Bundle.main.path(forResource: storyboardName, ofType: "storyboardc") != nil
                 && storyboardName.characters.count > 0 {
@@ -59,17 +66,53 @@ class CDVNativeView: CDVPlugin {
                 viewController = storyboard.instantiateViewController(withIdentifier: className)
                 
             }else{
-                viewController = UIViewController.init(nibName: className, bundle: nil)
+                
+                viewController = self.tryInstantiateView(name: className)
+                
             }
             
             let appDelegate = UIApplication.shared.delegate as! CDVAppDelegate
             appDelegate.window.rootViewController = viewController
             
             pluginResult = CDVPluginResult(status: CDVCommandStatus_OK)
+        }else{
+            do {
+                return try self.raiseClassNameError()
+            } catch InstantiateViewControllerError.notFound(let errorMessage) {
+                print(errorMessage)
+            }catch {
+                print("The first param 'packageOrClass' is required")
+            }
         }
         
         self.commandDelegate!.send(pluginResult, callbackId: command.callbackId)
         
     }
-
+    
+    private func instantiateViewController(name: String) throws -> UIViewController {
+        
+        if Bundle.main.path(forResource: name, ofType: "nib") != nil {
+            return UIViewController.init(nibName: name, bundle: nil)
+        }
+        
+        throw InstantiateViewControllerError.notFound("The ViewController: \(name) was not found")
+    }
+    
+    private func tryInstantiateView(name: String) -> UIViewController? {
+        
+        do {
+            return try self.instantiateViewController(name: name)
+        } catch InstantiateViewControllerError.notFound(let errorMessage) {
+            print(errorMessage)
+        }catch {
+            print("An error happens when try instantiate the ViewController: \(name)")
+        }
+        
+        return nil
+    }
+    
+    private func raiseClassNameError() throws {
+        throw InstantiateViewControllerError.nameNotDefined("The UIViewController name is required when the project don't have a navigatioController. Please, pass a className by param in JS, like this: 'NativeView.show('MyUIViewController')");
+    }
+    
 }
