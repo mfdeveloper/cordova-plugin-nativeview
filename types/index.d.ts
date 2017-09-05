@@ -25,7 +25,7 @@ interface NativeView {
      * @param success 
      * @param error 
      */
-    show(packageOrClass: string, className: string, success: Function, error: Function): void;
+    show(packageOrClass?: string, className?: string, success?: Function, error?: Function): void;
   }
   
   declare var NativeView: NativeView;
