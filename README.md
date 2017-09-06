@@ -15,6 +15,33 @@ You can use this in a standalone project (basic cordova project), or into a exis
 
     cordova plugin add cordova-plugin-nativeview --save
 
+### Extra: Native app (_Android/IOS_ native code)
+
+**IOS**
+
+* Install [cocoapods](https://cocoapods.org/)
+* Add this plugin like a `pod`:
+
+```ruby
+# Objective-C version (Default)
+pod 'cordova-plugin-nativeview', '~> 0.0.2'
+
+# Swift version (work in progress)
+pod 'cordova-plugin-nativeview', :git => 'https://github.com/mfdeveloper/cordova-plugin-nativeview.git', :branch => 'swift'
+```
+
+**ANDROID**
+
+Until here, this plugin is not registered on cloud. In future, this plugin will be on [jcenter](https://bintray.com/bintray/jcenter) and/or [mavencentral](https://search.maven.org/). By now, you need:
+
+* From your cordova project, copy the content off `platforms/android/assets/www` folder to your android project (usually, `app/src/main/assets`). Or create a **gradle** task to do this.
+
+* Clone this repo, and copy the class: `src/android/NativeView.java` to your Android project
+
+* Or create a `.jar` or a `.aar` that contains this class, and import like a [Android module dependency](https://developer.android.com/studio/projects/android-library.html#AddDependency)
+
+* Build/Run your android project!
+
 ## Supported Platforms
 
 - ![Android](icons/android.png) Android
@@ -27,7 +54,7 @@ You can use this in a standalone project (basic cordova project), or into a exis
 Shows a native view.
 
 
-**Android**
+**ANDROID**
 
 ```js
 
