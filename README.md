@@ -61,6 +61,18 @@ Until here, this plugin is not registered on cloud. In future, this plugin will 
 
 * Or create a `.jar` or a `.aar` that contains this class, and import like a [Android module dependency](https://developer.android.com/studio/projects/android-library.html#AddDependency)
 
+* Verify if the code snippet below is present in your `AndroidManifest.xml`. This is required to open a specific Activity from a [Intent](https://developer.android.com/reference/android/content/Intent.html) (using **[package + activityName]**)
+
+```xml
+<activity android:name=".MyActivity" >
+    <intent-filter>
+        <action android:name="com.mypackage.MyActivity" />
+        <category android:name="android.intent.category.DEFAULT" />
+    </intent-filter>
+</activity>
+```
+> If this filter not exists in `AndroidManifest.xml`, you will get this error: [No Activity found to handle Intent splash screen](https://stackoverflow.com/questions/15614561/android-content-activitynotfoundexception-no-activity-found-to-handle-intent-sp)
+
 * Build/Run your android project!
 
 ## Supported Platforms
@@ -79,8 +91,25 @@ Shows a native view.
 
 ```js
 
-//  pass a package name and a activity by params
-window.NativeView.show('com.mycompany', 'MyActivity');
+document.addEventListener("deviceready", function() {
+    //  pass a package name and a activity by params
+    cordova.plugins.NativeView.show('com.mycompany', 'MyActivity')
+    .then(function() {
+      
+      /**
+       * Do something when open the activity.
+       * This code here will be executed in paralell,
+       * not after open.
+       */
+    }).catch(function(error) {
+        
+        /**
+         * error.success => Will be "false"
+         * error.name => Exception type from the captured error 
+         * error.message => A exception message
+         */
+    });
+}, false);
 
 ```
 **IOS**
@@ -91,15 +120,43 @@ window.NativeView.show('com.mycompany', 'MyActivity');
 *  Optionally, pass a storyboard name that contains
 *  an UIViewController
 */
-window.NativeView.show('MyStoryboard', 'MyUIViewController');
+document.addEventListener("deviceready", function() {
+    cordova.plugins.NativeView.show('MyStoryboard', 'MyUIViewController')
+    .then(function() {
+      
+      /**
+       * Do something when open the activity.
+       * This code here will be executed in paralell,
+       * not after open.
+       */
+    });
 
-/*
-*  Or, pass only the UIViewController name, if you don't
-*  use storyboards in your project.
-*/
-window.NativeView.show('MyUIViewController');
+    /*
+     *  Or, pass only the UIViewController name, if you don't
+     *  use storyboards in your project.
+     */
+     cordova.plugins.NativeView.show('MyUIViewController');
+
+     /*
+     * Or just call the "show()" method without params.
+     * This plugin will check whether exists a *"NavigationController" 
+     * in your project, and execute
+     * "[popViewControllerAnimated: Yes]" method. Else, will be throw a
+     * exception
+     * 
+     */
+     cordova.plugins.NativeView.show();
+
+}, false);
 ```
 
+**IONIC**
+
+Replace `document.addEventListener` event to `this.platform.ready().then(...)` service method. See [IONIC Platform documentation](https://ionicframework.com/docs/api/platform/Platform/)
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## TODO
+
+- Better catch IOS exception from JS

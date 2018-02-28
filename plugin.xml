@@ -13,9 +13,15 @@
     <repo>https://github.com/mfdeveloper/cordova-plugin-nativeview.git</repo>
     <issue>https://github.com/mfdeveloper/cordova-plugin-nativeview/issues</issue>
 
-    <js-module src="www/plugin.js" name="NativeView">
+    <dependency id="es6-promise-plugin" version="4.2.2"></dependency>
+
+    <engines>
+        <engine name="cordova" version=">=3.0.0" />
+    </engines>
+
+    <js-module src="www/plugin.nativeview.js" name="NativeView">
         <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
-        <clobbers target="window.NativeView" />
+        <clobbers target="cordova.plugins.NativeView" />
     </js-module>
 
     <!-- android -->

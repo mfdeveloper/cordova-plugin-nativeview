@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-nativeview",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "types": "./types/index.d.ts",
   "description": "Start or Back to a native screen/page",
   "author": {
@@ -13,6 +13,9 @@
       "android",
       "ios"
     ]
+  },
+  "engines": {
+    "cordova": ">=3.0.0"
   },
   "repository": {
     "type": "git",
