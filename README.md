@@ -49,7 +49,22 @@ pod 'cordova-plugin-nativeview', :git => 'https://github.com/mfdeveloper/cordova
 
 **ANDROID**
 
-Until here, this plugin is not registered on cloud. In future, this plugin will be on [jcenter](https://bintray.com/bintray/jcenter) and/or [mavencentral](https://search.maven.org/). By now, you need:
+
+Add this code snippet below to your `build.gradle` file
+
+```groovy
+allprojects {
+    repositories {
+        ...
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+implementation ('com.github.mfdeveloper:cordova-plugin-nativeview:0.0.4')
+```
+> This dependency is added using [jitpack](https://jitpack.io)
+
+Or add, the `NativeView` class directly to your android project:
 
 * From your cordova project:
 

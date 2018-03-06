@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-nativeview"
-    version="0.0.2">
+    version="0.0.4">
     <name>Cordova NativeView Plugin</name>
     <description>
         Start or Back to a UIViewController(ios)/Activity(Android) 
@@ -33,7 +33,7 @@
         </feature>
       </config-file>
 
-      <source-file src="src/android/NativeView.java" target-dir="src/br/com/mfdeveloper/cordova" />
+      <source-file src="src/android/br/com/mfdeveloper/cordova/NativeView.java" target-dir="src/br/com/mfdeveloper/cordova" />
     </platform>
 
     <!-- ios -->
