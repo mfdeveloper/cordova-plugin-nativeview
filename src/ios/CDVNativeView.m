@@ -104,7 +104,7 @@
 
 - (void) raiseClassNameError {
     
-    NSString* message = [[NSString alloc] initWithFormat:@"The UIViewController name is required when the project don't have a navigatioController. Please, pass a className by param in JS, like this: 'NativeView.show('MyUIViewController')"];
+    NSString* message = [[NSString alloc] initWithFormat:@"The UIViewController name is required when the project don't have a navigationController. Please, pass a className by param in JS, like this: 'NativeView.show('MyUIViewController')"];
     @throw [[InstantiateViewControllerError alloc] initWithName: @"nameNotDefined" reason: message userInfo: nil];
 }
 
