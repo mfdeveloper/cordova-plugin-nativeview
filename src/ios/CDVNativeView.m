@@ -45,7 +45,7 @@
             [self.viewController.navigationController popViewControllerAnimated: YES];
         }else{
             
-            viewController = [self tryInstantiateViewWithName: className];
+            viewController = [self instantiateViewControllerWithName: className];
             
             [self.viewController.navigationController pushViewController:viewController animated:YES];
         }
@@ -85,6 +85,15 @@
     
     if ([[NSBundle mainBundle] pathForResource:name ofType: @"nib"]) {
         return [[UIViewController  alloc] initWithNibName: name bundle: nil];
+    }else{
+        
+        NSBundle* mainBundle = [NSBundle mainBundle];
+        NSString *storyboardName = [mainBundle objectForInfoDictionaryKey:@"UIMainStoryboardFile"];
+        
+        if (storyboardName != nil) {
+            UIStoryboard * storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:nil];
+            return [storyboard instantiateViewControllerWithIdentifier:name];
+        }
     }
     
     NSString* message = [[NSString alloc] initWithFormat:@"The ViewController: %@ was not found", name];
@@ -104,7 +113,7 @@
 
 - (void) raiseClassNameError {
     
-    NSString* message = [[NSString alloc] initWithFormat:@"The UIViewController name is required when the project don't have a navigationController. Please, pass a className by param in JS, like this: 'NativeView.show('MyUIViewController')"];
+    NSString* message = [[NSString alloc] initWithFormat:@"The UIViewController name is required when the project don't have a navigatioController. Please, pass a className by param in JS, like this: 'NativeView.show('MyUIViewController')"];
     @throw [[InstantiateViewControllerError alloc] initWithName: @"nameNotDefined" reason: message userInfo: nil];
 }
 
