@@ -46,65 +46,20 @@
 }
 - (void)show:(CDVInvokedUrlCommand*)command {
     
-    CDVPluginResult *pluginResult;
+    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
     
-    @try {
+    NSString* className = [command argumentAtIndex: 0];
+    NSString* storyboardName = @"";
+    
+    UIViewController *viewController = nil;
+    
+    if ([command.arguments count] > 1) {
         
-        NSString *viewControllerName;
-        NSString *storyboardName;
-        NSString *uri;
-        NSString *message;
-        NSString *firstParam;
+        NSString* secondParam = [command argumentAtIndex: 1];
         
-        NSMutableDictionary* config = [command.arguments objectAtIndex:0];
-        
-        if ([config isKindOfClass:[NSMutableDictionary class]]) {
-            
-            viewControllerName = [config objectForKey:@"viewControllerName"];
-            storyboardName = [config objectForKey:@"storyboardName"];
-            uri = [config objectForKey:@"uri"];
-            
-        } else if ([config isKindOfClass:[NSString class]]) {
-            
-            if ([command.arguments count] == 1) {
-                
-                firstParam = [command argumentAtIndex: 0];
-                
-                if ([self isValidURI: firstParam]) {
-                    // Open app with valid uri name
-                    [self openAPP:firstParam withCommand: command];
-                    
-                } else if ([firstParam containsString:@"Storyboard"]) {
-                    // Init viewController from Storyboard with initial view Controller or user defined viewControllerName
-                    [self instantiateViewController:nil fromStoryboard:firstParam];
-                    
-                } else if ([firstParam containsString:@"Controller"]) {
-                    // Init viewController with or without xib
-                    [self instantiateViewController:firstParam];
-                    
-                } else {
-                    message = [[NSString alloc] initWithFormat:@"%@ invalid. Must contain a Storyboard / Controller / URI valid in name", firstParam];
-                    @throw [[NSException alloc] initWithName:@"IoException" reason:message userInfo:nil];
-                }
-                
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-                return;
-                
-            }else if ([command.arguments count] == 2) {
-                
-                // first param is Storyboard
-                storyboardName = [command argumentAtIndex: 0];
-                
-                // second param is ViewController and/or storyboardId
-                viewControllerName = [command argumentAtIndex: 1];
-                
-            }else{
-                message = [[NSString alloc] initWithFormat:@"An UIViewController name or Storyboard name or URI valid name is required at least. Please, pass in the first param in JS, like this: 'NativeView.show('MyViewController') or NativeView.show('MyStoryboard') or NativeView.show('MyStoryboard', 'MyViewController') or NativeView.show('instagram://')"];
-                @throw [[NSException alloc] initWithName:@"NotFoundException" reason:message userInfo:nil];
-            }
-
-        }else{
-            @throw [[NSException alloc] initWithName:@"ParamsTypeException" reason:@"The params of show() method needs be a string or a json" userInfo:nil];
+        if (secondParam != nil) {
+            storyboardName = className;
+            className = secondParam != nil ? secondParam : @"";
         }
         
         if ([self isValidURI: uri]) {
@@ -136,236 +91,85 @@
         pluginResult = [CDVPluginResult resultWithStatus:exceptionType messageAsDictionary:error];
     }
     
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-}
-
-- (void)showMarket:(CDVInvokedUrlCommand*)command {
-    
-    NSMutableDictionary* config = [command.arguments objectAtIndex:0];
-    
-    dispatch_async(dispatch_get_main_queue(), ^{
+    if ([self.viewController navigationController] != nil) {
         
-        CDVPluginResult *pluginResult;
-        NSString *appId;
-        
-        if ([config isKindOfClass:[NSMutableDictionary class]]) {
-            appId = [config objectForKey:@"marketId"];
-        }else if([config isKindOfClass:[NSString class]]) {
-            appId = (NSString *) config;
-        }
-        
-        if (appId && [appId isKindOfClass:[NSString class]] && [appId length] > 0) {
-            NSString *url = [NSString stringWithFormat:@"itms://itunes.apple.com/app/%@", appId];
-            
-            [self openAPP:url withCommand: command];
-            
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        } else {
-            NSDictionary* error = @{
-                @"success": @NO,
-                @"name": @"ParamInvalidException",
-                @"message": @"Invalid application id: the parameter 'marketId' is invalid"
-            };
-            
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_INVALID_ACTION messageAsDictionary:error];
-        }
-        
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
-    });
-}
-
-- (void)checkIfAppInstalled:(CDVInvokedUrlCommand*)command {
-    CDVPluginResult *pluginResult;
-    NSString *uri;
-    
-    @try {
-        NSMutableDictionary* config = [command.arguments objectAtIndex:0];
-        
-        if ([config isKindOfClass:[NSMutableDictionary class]]) {
-            uri = [config objectForKey:@"uri"];
-            
-            if (uri == nil) {
-                @throw [[NSException alloc] initWithName:@"ParamsTypeException" reason:@"The 'uri' key is required" userInfo:nil];
-            }
-        }else if ([config isKindOfClass:[NSString class]]) {
-            uri = (NSString *) config;
+        if ([self.viewController.navigationController.viewControllers count] > 1) {
+            [self.viewController.navigationController popViewControllerAnimated: YES];
         }else{
-            @throw [[NSException alloc] initWithName:@"ParamsTypeException" reason:@"The params of checkIfAppInstalled() method needs be a string or a json" userInfo:nil];
+            
+            viewController = [self instantiateViewControllerWithName: className];
+            
+            [self.viewController.navigationController pushViewController:viewController animated:YES];
         }
         
-        if (![self isValidURI: uri]) {
-            NSString *message = [[NSString alloc] initWithFormat:@"uri param invalid: %@", uri];
-            NSDictionary* error = @{
-                @"success": @NO,
-                @"name": @"ParamInvalidException",
-                @"message": message
-            };
-            
-            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsDictionary:error];
-        } else {
-            if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:uri]]) {
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:(true)];
-            }
-            else {
-                NSString *message = [[NSString alloc] initWithFormat:@"The app that responds to URI: %@ was not found", uri];
-                NSDictionary* error = @{
-                    @"success": @NO,
-                    @"name": @"NotFoundException",
-                    @"message": message
-                };
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+        
+    }else if (className.length > 0 ){
+        
+        if ([[NSBundle mainBundle] pathForResource:storyboardName ofType: @"storyboardc"] != nil
+            && storyboardName.length > 0) {
                 
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_CLASS_NOT_FOUND_EXCEPTION messageAsDictionary:error];
+            UIStoryboard* storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:[NSBundle mainBundle]];
+            
+            viewController = [storyboard instantiateViewControllerWithIdentifier:className];
+            
+            }else{
+                
+                viewController = [self tryInstantiateViewWithName: className];
             }
         }
     } @catch (NSException *e) {
         NSLog(@"[%@]: %@", e.name, e.reason);
         
-        typedef CDVCommandStatus (^CaseBlock)(void);
+        CDVAppDelegate* appDelegate = [[UIApplication sharedApplication] delegate];
+        appDelegate.window.rootViewController = viewController;
         
-        CaseBlock c = self.resultExceptions[e.name];
-        
-        CDVCommandStatus exceptionType = c ? c() : CDVCommandStatus_ERROR;
-        NSDictionary* error = @{
-            @"success": @NO,
-            @"name": e.name,
-            @"message": e.reason
-        };
-        pluginResult = [CDVPluginResult resultWithStatus:exceptionType messageAsDictionary:error];
-    } @finally {
-        [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+    }else{
+        @try {
+            [self raiseClassNameError];
+        } @catch(InstantiateViewControllerError* e) {
+            NSLog(@"%@", e.reason);
+        }
     }
+    
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId ];
 }
 
-- (void) instantiateViewController:(NSString *)viewControllerName {
+- (UIViewController*) instantiateViewControllerWithName: (NSString*) name {
     
-    NSString *message;
-    
-    if (viewControllerName && viewControllerName.length > 0) {
+    if ([[NSBundle mainBundle] pathForResource:name ofType: @"nib"]) {
+        return [[UIViewController  alloc] initWithNibName: name bundle: nil];
+    }else{
         
-        UIViewController *destinyViewController = nil;
+        NSBundle* mainBundle = [NSBundle mainBundle];
+        NSString *storyboardName = [mainBundle objectForInfoDictionaryKey:@"UIMainStoryboardFile"];
         
-        // Call preInitializeViewControllerWithName if exists in self.viewController
-        SEL selector = NSSelectorFromString(@"preInitializeViewControllerWithName:");
-        
-        if ([self.viewController respondsToSelector:selector]) {
-            
-            SuppressPerformSelectorLeakWarning(
-               destinyViewController = [self.viewController performSelector:selector withObject:viewControllerName];
-            );
+        if (storyboardName != nil) {
+            UIStoryboard * storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:nil];
+            return [storyboard instantiateViewControllerWithIdentifier:name];
         }
-        
-        // if not performSelector, call automatically the viewController
-        if (!destinyViewController) {
-            @try {
-                if ([[NSBundle mainBundle] pathForResource:viewControllerName ofType:@"nib"]) {
-                    // Initialize with nib/xib
-                    destinyViewController = [[UIViewController alloc] initWithNibName:viewControllerName bundle:nil];
-                } else {
-                    // Initialize without nib/xib
-                    Class viewController = NSClassFromString(viewControllerName);
-                    id anInstance = [[viewController alloc] init];
-                    destinyViewController = anInstance;
-                }
-            } @catch(NSException *e) {
-                message = [[NSString alloc] initWithFormat:@"%@ and/or its own xib does not exist. \nDetail: %@", viewControllerName, e.reason];
-                @throw [[NSException alloc] initWithName:@"NotFoundException" reason:message userInfo:nil];
-            }
-        }
-        
-        // Call destinyViewController from current viewController
-        [self.viewController.navigationController pushViewController:destinyViewController animated:YES];
-        
-    } else {
-        message = [[NSString alloc] initWithFormat:@"UIViewController with name %@ was not found", viewControllerName];
-        @throw [[NSException alloc] initWithName:@"ParamInvalidException" reason:message userInfo:nil];
     }
+    
+    NSString* message = [[NSString alloc] initWithFormat:@"The ViewController: %@ was not found", name];
+    @throw [[InstantiateViewControllerError alloc] initWithName: @"notFound" reason: message userInfo: nil];
 }
 
-- (void) instantiateViewController:(NSString *)viewControllerName fromStoryboard:(NSString *)storyboardName {
+- (UIViewController*) tryInstantiateViewWithName:(NSString *)name {
     
-    NSString *message;
-    
-    if (storyboardName && storyboardName.length > 0) {
-        
-        UIViewController *destinyViewController = nil;
-        
-        // Call preInitializeViewControllerWithName:fromStoryBoardName if exists in self.viewController
-        SEL selector = NSSelectorFromString(@"preInitializeViewControllerWithName:fromStoryBoardName:");
-        
-        if ([self.viewController respondsToSelector:selector]) {
-            
-            SuppressPerformSelectorLeakWarning(
-                destinyViewController = [self.viewController performSelector:selector withObject:viewControllerName withObject:storyboardName];
-           );
-        }
-        
-        // if not performSelector, call automatically the viewController from storyboard
-        if (!destinyViewController) {
-            // initialize a storyboard automatically from viewControllerName or default initialViewController property
-            @try {
-                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:[NSBundle mainBundle]];
-                
-                if (viewControllerName && viewControllerName.length > 0) {
-                    message = [[NSString alloc] initWithFormat:@"Identity -> Storyboard ID: %@ not found in storyboard %@", viewControllerName, storyboardName];
-                    // if pass a viewControllerName, initializate the storyboard with viewControllerName initial
-                    destinyViewController = [storyboard instantiateViewControllerWithIdentifier:viewControllerName];
-                } else {
-                    message = [[NSString alloc] initWithFormat:@"Storyboard -> ViewController -> 'is Initial View Controller' not check in storyboard %@", storyboardName];
-                    // if not pass a viewControllerName, initializate the storyboard with default inicialViewController property
-                    destinyViewController = [storyboard instantiateInitialViewController];
-                }
-            } @catch (NSException *e) {
-                NSString *detailMessage = [[NSString alloc] initWithFormat:@"%@ \nDetail: %@", message, e.reason];
-                @throw [[NSException alloc] initWithName:@"NotFoundException" reason:detailMessage userInfo:nil];
-            }
-        }
-        
-        // Call destinyViewController from current viewController
-        [self.viewController.navigationController pushViewController:destinyViewController animated:YES];
-        
-    } else {
-        message = [[NSString alloc] initWithFormat:@"Storyboard %@ was not found", storyboardName];
-        @throw [[NSException alloc] initWithName:@"ParamInvalidException" reason:message userInfo:nil];
+    @try {
+        return [self instantiateViewControllerWithName: name];
+    } @catch (InstantiateViewControllerError* e) {
+        NSLog(@"%@", e.reason);
     }
+    
+    return nil;
 }
 
-- (bool) isValidURI:(NSString *)uri {
-    if (uri != nil && [uri containsString:@"://"]) { // TODO: Replace for regular expression
-        return true;
-    }
-    return false;
-}
-
-- (void) openAPP:(NSString *)uriValue withCommand:(CDVInvokedUrlCommand*) command {
+- (void) raiseClassNameError {
     
-    if ([[UIApplication sharedApplication] respondsToSelector:@selector(openURL:options:completionHandler:)]) { // ios >= 10
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:uriValue] options:@{} completionHandler:^(BOOL opened) {
-            
-            CDVPluginResult *pluginResult;
-            
-            if (!opened) {
-                NSString* message = @"APP with uri %@ not found.";
-                NSLog(message, uriValue);
-                
-                NSDictionary* error = @{
-                    @"success": @NO,
-                    @"name": @"InstantiationException",
-                    @"message": [[NSString alloc] initWithFormat:message, uriValue]
-                };
-                
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_INSTANTIATION_EXCEPTION messageAsDictionary:error];
-            } else {
-                NSString* message = @"APP with uri %@ opened.";
-                NSLog(message, uriValue);
-                
-                pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsString:[[NSString alloc] initWithFormat:message, uriValue]];
-            }
-            
-            [self.commandDelegate sendPluginResult:pluginResult callbackId: command.callbackId];
-        }];
-    } else { // ios < 10 (Will be depreciated)
-        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:uriValue]];
-    }
+    NSString* message = [[NSString alloc] initWithFormat:@"The UIViewController name is required when the project don't have a navigatioController. Please, pass a className by param in JS, like this: 'NativeView.show('MyUIViewController')"];
+    @throw [[InstantiateViewControllerError alloc] initWithName: @"nameNotDefined" reason: message userInfo: nil];
 }
 
 @end
