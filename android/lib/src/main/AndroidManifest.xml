@@ -1,2 +1,2 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="br.com.mfdeveloper.cordova.lib" />
+    package="br.com.mfdeveloper.lib" />

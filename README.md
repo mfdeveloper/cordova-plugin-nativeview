@@ -60,7 +60,7 @@ allprojects {
     }
 }
 
-implementation ('com.github.mfdeveloper:cordova-plugin-nativeview:0.0.4')
+implementation ('com.github.mfdeveloper:cordova-plugin-nativeview:0.0.5')
 ```
 > This dependency is added using [jitpack](https://jitpack.io)
 
