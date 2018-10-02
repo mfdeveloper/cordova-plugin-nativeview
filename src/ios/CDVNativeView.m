@@ -1,111 +1,192 @@
 //
 //  CDVNativeView.m
-//  IRPF
 //
 //  Created by Michel Felipe on 05/09/17.
 //
 //
 
 #import "CDVNativeView.h"
-#import "InstantiateViewControllerError.h"
 #import <UIKit/UIKit.h>
 
 @interface CDVNativeView (hidden)
 
--(UIViewController*) instantiateViewControllerWithName: (NSString*) name;
--(UIViewController*) tryInstantiateViewWithName: (NSString*) name;
+-(UIViewController *) instantiateViewControllerWithName: (NSString*) name;
+-(UIViewController *) tryInstantiateViewWithName: (NSString*) name;
 
 @end
 
 @implementation CDVNativeView
 
+- (instancetype)init
+{
+    self = [super init];
+    if (self) {
+        self.resultExceptions = @{
+          @"IO_EXCEPTION": ^{
+              return CDVCommandStatus_IO_EXCEPTION;
+          },
+          @"CLASS_NOT_FOUND_EXCEPTION": ^{
+              return CDVCommandStatus_CLASS_NOT_FOUND_EXCEPTION;
+          },
+          @"PARAM_INVALID_EXCEPTION": ^{
+              return CDVCommandStatus_ERROR;
+          },
+          @"INSTANTIATION_EXCEPTION": ^{
+              return CDVCommandStatus_INSTANTIATION_EXCEPTION;
+          }
+       };
+   }
+    return self;
+}
 - (void)show:(CDVInvokedUrlCommand*)command {
     
-    CDVPluginResult* pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR];
-    
-    NSString* className = [command argumentAtIndex: 0];
-    NSString* storyboardName = @"";
-    
-    UIViewController *viewController = nil;
-    
-    if ([command.arguments count] > 1) {
-        
-        NSString* secondParam = [command argumentAtIndex: 1];
-        
-        if (secondParam != nil) {
-            storyboardName = className;
-            className = secondParam != nil ? secondParam : @"";
-        }
-        
-    }
-    
-    if ([self.viewController navigationController] != nil) {
-        
-        if ([self.viewController.navigationController.viewControllers count] > 1) {
-            [self.viewController.navigationController popViewControllerAnimated: YES];
-        }else{
-            
-            viewController = [self tryInstantiateViewWithName: className];
-            
-            [self.viewController.navigationController pushViewController:viewController animated:YES];
-        }
-        
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-        
-    }else if (className.length > 0 ){
-        
-        if ([[NSBundle mainBundle] pathForResource:storyboardName ofType: @"storyboardc"] != nil
-            && storyboardName.length > 0) {
-                
-            UIStoryboard* storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:[NSBundle mainBundle]];
-            
-            viewController = [storyboard instantiateViewControllerWithIdentifier:className];
-            
-            }else{
-                
-                viewController = [self tryInstantiateViewWithName: className];
-            }
-        
-        CDVAppDelegate* appDelegate = [[UIApplication sharedApplication] delegate];
-        appDelegate.window.rootViewController = viewController;
-        
-        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
-    }else{
-        @try {
-            [self raiseClassNameError];
-        } @catch(InstantiateViewControllerError* e) {
-            NSLog(@"%@", e.reason);
-        }
-    }
-    
-    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId ];
-}
-
-- (UIViewController*) instantiateViewControllerWithName: (NSString*) name {
-    
-    if ([[NSBundle mainBundle] pathForResource:name ofType: @"nib"]) {
-        return [[UIViewController  alloc] initWithNibName: name bundle: nil];
-    }
-    
-    NSString* message = [[NSString alloc] initWithFormat:@"The ViewController: %@ was not found", name];
-    @throw [[InstantiateViewControllerError alloc] initWithName: @"notFound" reason: message userInfo: nil];
-}
-
-- (UIViewController*) tryInstantiateViewWithName:(NSString *)name {
+    CDVPluginResult *pluginResult;
     
     @try {
-        return [self instantiateViewControllerWithName: name];
-    } @catch (InstantiateViewControllerError* e) {
+        NSString *viewControllerName;
+        NSString *storyboardName;
+        NSString *message;
+        
+        // Handling arguments
+        if ([command.arguments count] == 1) {
+            
+            NSString *firstParam = [command argumentAtIndex: 0];
+            
+            if ([firstParam hasSuffix:@"Storyboard"]) {
+                // Init viewController from Storyboard with initial view Controlleror or user defined viewControllerName
+                [self instantiateViewController:nil fromStoryboard:firstParam];
+                
+            } else if ([firstParam hasSuffix:@"ViewController"]) {
+                // Init viewController with or without xib
+                [self instantiateViewController:firstParam];
+                
+            } else {
+                message = [[NSString alloc] initWithFormat:@"%@ invalid. Must contain Storyboard or Controller in name", firstParam];
+                @throw [[NSException alloc] initWithName:@"IO_EXCEPTION" reason:message userInfo:nil];
+            }
+            
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
+            
+        } else if ([command.arguments count] == 2) {
+            
+            // first param is Storyboard
+            storyboardName = [command argumentAtIndex: 0];
+            
+            // second param is ViewController and/or segueID
+            viewControllerName = [command argumentAtIndex: 1];
+            
+            // Init viewController from Storyboard with initial view Controlleror or user defined viewControllerName
+            [self instantiateViewController:viewControllerName fromStoryboard:storyboardName];
+            
+        } else {
+            message = [[NSString alloc] initWithFormat:@"An UIViewController name or Storyboard name is required at least. Please, pass in the first param in JS, like this: 'NativeView.show('MyViewController') or NativeView.show('MyStoryboard') or NativeView.show('MyStoryboard', 'MyViewController')"];
+            @throw [[NSException alloc] initWithName:@"CLASS_NOT_FOUND_EXCEPTION" reason:message userInfo:nil];
+        }
+    } @catch (NSException *e) {
         NSLog(@"%@", e.reason);
+        
+        typedef CDVCommandStatus (^CaseBlock)(void);
+        
+        CaseBlock c = self.resultExceptions[e.name];
+        
+        CDVCommandStatus exceptionType = c ? c() : CDVCommandStatus_ERROR;
+        pluginResult = [CDVPluginResult resultWithStatus:exceptionType messageAsString:e.reason];
     }
     
-    return nil;
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void) raiseClassNameError {
+- (void) instantiateViewController:(NSString *)viewControllerName {
     
-    NSString* message = [[NSString alloc] initWithFormat:@"The UIViewController name is required when the project don't have a navigationController. Please, pass a className by param in JS, like this: 'NativeView.show('MyUIViewController')"];
-    @throw [[InstantiateViewControllerError alloc] initWithName: @"nameNotDefined" reason: message userInfo: nil];
+    NSString *message;
+    
+    if (viewControllerName && viewControllerName.length > 0) {
+        
+        UIViewController *destinyViewController = nil;
+        
+        // Call preInitializeViewControllerWithName if exists in self.viewController
+        SEL selector = NSSelectorFromString(@"preInitializeViewControllerWithName:");
+        
+        if ([self.viewController respondsToSelector:selector]) {
+            
+            SuppressPerformSelectorLeakWarning(
+               destinyViewController = [self.viewController performSelector:selector withObject:viewControllerName];
+            );
+        }
+        
+        // if not performSelector, call automatically the viewController
+        if (!destinyViewController) {
+            @try {
+                if ([[NSBundle mainBundle] pathForResource:viewControllerName ofType:@"nib"]) {
+                    // Initialize with nib/xib
+                    destinyViewController = [[UIViewController alloc] initWithNibName:viewControllerName bundle:nil];
+                } else {
+                    // Initialize without nib/xib
+                    Class viewController = NSClassFromString(viewControllerName);
+                    id anInstance = [[viewController alloc] init];
+                    destinyViewController = anInstance;
+                }
+            } @catch(NSException *e) {
+                message = [[NSString alloc] initWithFormat:@"%@ and/or its own xib does not exist. \nDetail: %@", viewControllerName, e.reason];
+                @throw [[NSException alloc] initWithName:@"CLASS_NOT_FOUND_EXCEPTION" reason:message userInfo:nil];
+            }
+        }
+        
+        // Call destinyViewController from current viewController
+        [self.viewController.navigationController pushViewController:destinyViewController animated:YES];
+        
+    } else {
+        message = [[NSString alloc] initWithFormat:@"UIViewController with name %@ was not found", viewControllerName];
+        @throw [[NSException alloc] initWithName:@"PARAM_INVALID_EXCEPTION" reason:message userInfo:nil];
+    }
+}
+
+- (void) instantiateViewController:(NSString *)viewControllerName fromStoryboard:(NSString *)storyboardName {
+    
+    NSString *message;
+    
+    if (storyboardName && storyboardName.length > 0) {
+        
+        UIViewController *destinyViewController = nil;
+        
+        // Call preInitializeViewControllerWithName:fromStoryBoardName if exists in self.viewController
+        SEL selector = NSSelectorFromString(@"preInitializeViewControllerWithName:fromStoryBoardName");
+        
+        if ([self.viewController respondsToSelector:selector]) {
+            
+            SuppressPerformSelectorLeakWarning(
+                destinyViewController = [self.viewController performSelector:selector withObject:viewControllerName withObject:storyboardName];
+           );
+        }
+        
+        // if not performSelector, call automatically the viewController from storyboard
+        if (!destinyViewController) {
+            // initialize a storyboard automatically from viewControllerName or default initialViewController property
+            @try {
+                UIStoryboard *storyboard = [UIStoryboard storyboardWithName:storyboardName bundle:[NSBundle mainBundle]];
+                
+                if (viewControllerName && viewControllerName.length > 0) {
+                    message = [[NSString alloc] initWithFormat:@"Identity -> Storyboard ID: %@ not found in storyboard %@", viewControllerName, storyboardName];
+                    // if pass a viewControllerName, initializate the storyboard with viewControllerName initial
+                    destinyViewController = [storyboard instantiateViewControllerWithIdentifier:viewControllerName];
+                } else {
+                    message = [[NSString alloc] initWithFormat:@"Storyboard -> ViewController -> 'is Initial View Controller' not check in storyboard %@", storyboardName];
+                    // if not pass a viewControllerName, initializate the storyboard with default inicialViewController property
+                    destinyViewController = [storyboard instantiateInitialViewController];
+                }
+            } @catch (NSException *e) {
+                NSString *detailMessage = [[NSString alloc] initWithFormat:@"%@ \nDetail: %@", message, e.reason];
+                @throw [[NSException alloc] initWithName:@"INSTANTIATION_EXCEPTION" reason:detailMessage userInfo:nil];
+            }
+        }
+        
+        // Call destinyViewController from current viewController
+        [self.viewController.navigationController pushViewController:destinyViewController animated:YES];
+        
+    } else {
+        message = [[NSString alloc] initWithFormat:@"Storyboard %@ was not found", storyboardName];
+        @throw [[NSException alloc] initWithName:@"PARAM_INVALID_EXCEPTION" reason:message userInfo:nil];
+    }
 }
 
 @end
