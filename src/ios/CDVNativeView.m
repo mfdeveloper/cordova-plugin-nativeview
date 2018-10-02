@@ -72,7 +72,7 @@
             // first param is Storyboard
             storyboardName = [command argumentAtIndex: 0];
             
-            // second param is ViewController and/or segueID
+            // second param is ViewController and/or storyboardId
             viewControllerName = [command argumentAtIndex: 1];
             
             // Init viewController from Storyboard with initial view Controlleror or user defined viewControllerName
