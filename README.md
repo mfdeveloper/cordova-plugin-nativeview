@@ -102,7 +102,7 @@ Or add, the `NativeView` class directly to your android project:
 Shows a native view.
 
 
-**ANDROID**
+### ANDROID
 
 ```js
 
@@ -127,15 +127,19 @@ document.addEventListener("deviceready", function() {
 }, false);
 
 ```
-**IOS**
+### IOS
+
+
+ - Pass `Storyboard` name and `storyboard id`
 
 ```js
-
-/*
-*  Optionally, pass a storyboard name that contains
-*  an UIViewController
-*/
 document.addEventListener("deviceready", function() {
+
+    /*
+     * The first param is a storyboard name, and
+     * the second param is a storyboardId 
+     * (conventionally the same name of the ViewController class name)
+     */
     cordova.plugins.NativeView.show('MyStoryboard', 'MyUIViewController')
     .then(function() {
       
@@ -146,26 +150,41 @@ document.addEventListener("deviceready", function() {
        */
     });
 
-    /*
-     *  Or, pass only the UIViewController name, if you don't
-     *  use storyboards in your project.
-     */
-     cordova.plugins.NativeView.show('MyUIViewController');
-
-     /*
-     * Or just call the "show()" method without params.
-     * This plugin will check whether exists a *"NavigationController" 
-     * in your project, and execute
-     * "[popViewControllerAnimated: Yes]" method. Else, will be throw a
-     * exception
-     * 
-     */
-     cordova.plugins.NativeView.show();
-
 }, false);
+
 ```
 
-**IONIC**
+- Pass only the `ViewController` class/xib name
+
+```js
+/*
+*  Or, pass only the UIViewController name, if you don't
+*  use storyboards in your project. This plugin try instantiate
+*  from a ".xib" file. If not exists, try instantiate just by
+*  UIViewController class.
+* 
+*  By convention, your ViewController class needs finish with 
+* 'ViewController'.
+*/
+cordova.plugins.NativeView.show('MyUIViewController');
+```
+
+- Pass only the `Storyboard` name
+
+```js
+/*
+*  Or, pass only the Storyboard name. If you don't pass a 
+*  ViewController class name in second param, the 
+*  "rootViewController" of your storyboard will be
+*  instantiated. 
+* 
+*  By convention, your
+*  Storyboard name needs finish with 'Storyboard'
+*/
+cordova.plugins.NativeView.show('MyStorboard');
+````
+
+### IONIC
 
 Replace `document.addEventListener` event to `this.platform.ready().then(...)` service method. See [IONIC Platform documentation](https://ionicframework.com/docs/api/platform/Platform/)
 ## License
@@ -174,4 +193,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## TODO
 
-- Better catch IOS exception from JS
+- [x] Better catch IOS exception from JS
