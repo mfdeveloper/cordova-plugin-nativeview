@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-nativeview",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "types": "./types/index.d.ts",
   "description": "Start or Back to a native screen/page",
   "author": {
