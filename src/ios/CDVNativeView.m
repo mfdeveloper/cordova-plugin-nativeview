@@ -52,11 +52,11 @@
             
             NSString *firstParam = [command argumentAtIndex: 0];
             
-            if ([firstParam hasSuffix:@"Storyboard"]) {
+            if ([firstParam containsString:@"Storyboard"]) {
                 // Init viewController from Storyboard with initial view Controlleror or user defined viewControllerName
                 [self instantiateViewController:nil fromStoryboard:firstParam];
                 
-            } else if ([firstParam hasSuffix:@"ViewController"]) {
+            } else if ([firstParam containsString:@"Controller"]) {
                 // Init viewController with or without xib
                 [self instantiateViewController:firstParam];
                 
@@ -150,7 +150,7 @@
         UIViewController *destinyViewController = nil;
         
         // Call preInitializeViewControllerWithName:fromStoryBoardName if exists in self.viewController
-        SEL selector = NSSelectorFromString(@"preInitializeViewControllerWithName:fromStoryBoardName");
+        SEL selector = NSSelectorFromString(@"preInitializeViewControllerWithName:fromStoryBoardName:");
         
         if ([self.viewController respondsToSelector:selector]) {
             

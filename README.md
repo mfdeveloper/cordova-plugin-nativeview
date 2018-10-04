@@ -163,8 +163,9 @@ document.addEventListener("deviceready", function() {
 *  from a ".xib" file. If not exists, try instantiate just by
 *  UIViewController class.
 * 
-*  By convention, your ViewController class needs finish with 
-* 'ViewController'.
+*  By convention, your ViewController class/xib needs contains 'Controller' 
+*  string in any part of the name 
+* .
 */
 cordova.plugins.NativeView.show('MyUIViewController');
 ```
@@ -178,8 +179,8 @@ cordova.plugins.NativeView.show('MyUIViewController');
 *  "rootViewController" of your storyboard will be
 *  instantiated. 
 * 
-*  By convention, your
-*  Storyboard name needs finish with 'Storyboard'
+*  By convention, your Storyboard name needs contains 'Storyboard' 
+*  string in any part of the name
 */
 cordova.plugins.NativeView.show('MyStorboard');
 ````
