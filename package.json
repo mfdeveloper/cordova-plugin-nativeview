@@ -38,6 +38,6 @@
     "np": "^3.0.4"
   },
   "scripts": {
-    "publishPackage": "./node_modules/.bin/np"
+    "release": "./node_modules/.bin/np"
   }
 }
