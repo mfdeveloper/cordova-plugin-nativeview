@@ -41,7 +41,7 @@ Make sure that `config.xml` file contains the `<feature>` tag below:
 
 ```ruby
 # Objective-C version (Default)
-pod 'cordova-plugin-nativeview', '~> 0.0.2'
+pod 'cordova-plugin-nativeview', '~> 0.0.8'
 
 # Swift version (work in progress)
 pod 'cordova-plugin-nativeview', :git => 'https://github.com/mfdeveloper/cordova-plugin-nativeview.git', :branch => 'swift'
@@ -60,7 +60,7 @@ allprojects {
     }
 }
 
-implementation ('com.github.mfdeveloper:cordova-plugin-nativeview:0.0.5')
+implementation ('com.github.mfdeveloper:cordova-plugin-nativeview:0.0.8')
 ```
 > This dependency is added using [jitpack](https://jitpack.io)
 

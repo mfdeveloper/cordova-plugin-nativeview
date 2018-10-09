@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-nativeview"
-    version="0.0.4">
+    version="0.0.8">
     <name>Cordova NativeView Plugin</name>
     <description>
         Start or Back to a UIViewController(ios)/Activity(Android) 
@@ -47,7 +47,5 @@
         
          <header-file src="src/ios/CDVNativeView.h" />
          <source-file src="src/ios/CDVNativeView.m" />
-         <header-file src="src/ios/InstantiateViewControllerError.h" />
-         <source-file src="src/ios/InstantiateViewControllerError.m" />
     </platform>
 </plugin>
