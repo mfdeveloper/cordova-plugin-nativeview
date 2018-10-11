@@ -17,7 +17,12 @@ function NativeView() {
         }
       }
 
-      cordova.exec(success || resolve, error || reject, 'NativeView', 'show', params);
+      cordova.exec(success || resolve, error || reject, PLUGIN_NAME, 'show', params);
+    });
+  };
+  this.checkIfAppInstalled = function (uriName, success, error) {
+    return new Promise(function(resolve, reject) {
+       cordova.exec(success || resolve, error || reject, PLUGIN_NAME, "checkIfAppInstalled", [uriName]);
     });
   };
 };

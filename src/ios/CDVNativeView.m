@@ -33,6 +33,9 @@
           },
           @"INSTANTIATION_EXCEPTION": ^{
               return CDVCommandStatus_INSTANTIATION_EXCEPTION;
+          },
+          @"NOT_FOUND_EXCEPTION": ^{
+              return CDVCommandStatus_NO_RESULT;
           }
        };
    }
@@ -52,7 +55,11 @@
             
             NSString *firstParam = [command argumentAtIndex: 0];
             
-            if ([firstParam containsString:@"Storyboard"]) {
+            if ([self isValidURI: firstParam]) {
+                // Open app with valid uri name
+                [self openAPP:firstParam];
+                
+            } else if ([firstParam containsString:@"Storyboard"]) {
                 // Init viewController from Storyboard with initial view Controlleror or user defined viewControllerName
                 [self instantiateViewController:nil fromStoryboard:firstParam];
                 
@@ -61,7 +68,7 @@
                 [self instantiateViewController:firstParam];
                 
             } else {
-                message = [[NSString alloc] initWithFormat:@"%@ invalid. Must contain Storyboard or Controller in name", firstParam];
+                message = [[NSString alloc] initWithFormat:@"%@ invalid. Must contain a Storyboard / Controller / URI valid in name", firstParam];
                 @throw [[NSException alloc] initWithName:@"IO_EXCEPTION" reason:message userInfo:nil];
             }
             
@@ -79,7 +86,7 @@
             [self instantiateViewController:viewControllerName fromStoryboard:storyboardName];
             
         } else {
-            message = [[NSString alloc] initWithFormat:@"An UIViewController name or Storyboard name is required at least. Please, pass in the first param in JS, like this: 'NativeView.show('MyViewController') or NativeView.show('MyStoryboard') or NativeView.show('MyStoryboard', 'MyViewController')"];
+            message = [[NSString alloc] initWithFormat:@"An UIViewController name or Storyboard name or URI valid name is required at least. Please, pass in the first param in JS, like this: 'NativeView.show('MyViewController') or NativeView.show('MyStoryboard') or NativeView.show('MyStoryboard', 'MyViewController') or NativeView.show('instagram://')"];
             @throw [[NSException alloc] initWithName:@"CLASS_NOT_FOUND_EXCEPTION" reason:message userInfo:nil];
         }
     } @catch (NSException *e) {
@@ -186,6 +193,48 @@
     } else {
         message = [[NSString alloc] initWithFormat:@"Storyboard %@ was not found", storyboardName];
         @throw [[NSException alloc] initWithName:@"PARAM_INVALID_EXCEPTION" reason:message userInfo:nil];
+    }
+}
+    
+- (void)checkIfAppInstalled:(CDVInvokedUrlCommand*)command {
+    
+    CDVPluginResult *pluginResult;
+    
+    NSString *uri = [command.arguments objectAtIndex:0];
+    
+    if (![self isValidURI: uri]) {
+        NSString *message = [[NSString alloc] initWithFormat:@"uri param invalid: %@", uri];
+        pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsString:message];
+    } else {
+        if ([[UIApplication sharedApplication] canOpenURL:[NSURL URLWithString:uri]]) {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK messageAsBool:(true)];
+        }
+        else {
+            pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_ERROR messageAsBool:(false)];
+        }
+    }
+    
+    [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
+}
+
+- (bool) isValidURI:(NSString *)uri {
+    if (uri != nil && [uri containsString:@"://"]) { // TODO: Replace for regular expression
+        return true;
+    }
+    return false;
+}
+
+- (void) openAPP:(NSString *)uriValue {
+    if ([[UIApplication sharedApplication] respondsToSelector:@selector(openURL:options:completionHandler:)]) { // ios >= 10
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:uriValue] options:@{} completionHandler:^(BOOL opened) {
+            if (!opened) {
+                NSLog(@"APP with uri %@ not found.", uriValue);
+            } else {
+                NSLog(@"APP with uri %@ opened", uriValue);
+            }
+        }];
+    } else { // ios < 10 (Will be depreciated)
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:uriValue]];
     }
 }
 

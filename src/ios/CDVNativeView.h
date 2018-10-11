@@ -21,5 +21,6 @@
 @property (strong, nonatomic) NSDictionary *resultExceptions;
 
 - (void)show:(CDVInvokedUrlCommand*)command;
+- (void)checkIfAppInstalled:(CDVInvokedUrlCommand*)command;
 
 @end
