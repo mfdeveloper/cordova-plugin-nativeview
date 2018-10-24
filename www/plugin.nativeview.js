@@ -20,11 +20,18 @@ function NativeView() {
       cordova.exec(success || resolve, error || reject, PLUGIN_NAME, 'show', params);
     });
   };
-  this.checkIfAppInstalled = function (uriName, success, error) {
-    return new Promise(function(resolve, reject) {
-       cordova.exec(success || resolve, error || reject, PLUGIN_NAME, "checkIfAppInstalled", [uriName]);
+
+  this.checkIfAppInstalled = function (config, success, error) {
+    return new Promise(function (resolve, reject) {
+        cordova.exec(success || resolve, error || reject, PLUGIN_NAME, 'checkIfAppInstalled', config ? [config] : []);
+    });
+  };
+
+  this.showMarket = function (config, success, error) {
+    return new Promise(function (resolve, reject) {
+        cordova.exec(success || resolve, error || reject, PLUGIN_NAME, 'showMarket', config ? [config] : []);
     });
   };
 };
 
-module.exports = new NativeView();
+module.exports = NativeView;

@@ -19,25 +19,28 @@
         <engine name="cordova" version=">=3.0.0" />
     </engines>
 
-    <js-module src="www/plugin.nativeview.js" name="NativeView">
-        <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
-        <clobbers target="cordova.plugins.NativeView" />
-    </js-module>
-
     <!-- android -->
     <platform name="android">
-      <config-file target="res/xml/config.xml" parent="/*">
-        <feature name="NativeView">
-          <param name="android-package" value="br.com.mfdeveloper.cordova.NativeView" />
-          <param name="onload" value="true" />
-        </feature>
-      </config-file>
+        <js-module src="www/android/plugin.nativeview.js" name="NativeView">
+            <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
+            <clobbers target="cordova.plugins.NativeView" />
+        </js-module>
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="NativeView">
+            <param name="android-package" value="br.com.mfdeveloper.cordova.NativeView" />
+            <param name="onload" value="true" />
+            </feature>
+        </config-file>
 
-      <source-file src="src/android/br/com/mfdeveloper/cordova/NativeView.java" target-dir="src/br/com/mfdeveloper/cordova" />
+        <source-file src="src/android/br/com/mfdeveloper/cordova/NativeView.java" target-dir="src/br/com/mfdeveloper/cordova" />
     </platform>
 
     <!-- ios -->
     <platform name="ios">
+        <js-module src="www/plugin.nativeview.js" name="NativeView">
+            <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
+            <clobbers target="cordova.plugins.NativeView" />
+        </js-module>
         <config-file target="config.xml" parent="/*">
             <feature name="NativeView">
                 <param name="ios-package" value="CDVNativeView" />
@@ -45,7 +48,7 @@
             </feature>
         </config-file>
         
-         <header-file src="src/ios/CDVNativeView.h" />
-         <source-file src="src/ios/CDVNativeView.m" />
+        <header-file src="src/ios/CDVNativeView.h" />
+        <source-file src="src/ios/CDVNativeView.m" />
     </platform>
 </plugin>
