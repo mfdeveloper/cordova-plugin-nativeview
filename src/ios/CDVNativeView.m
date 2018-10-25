@@ -55,9 +55,12 @@
             
             NSString *firstParam = [command argumentAtIndex: 0];
             
-            if ([self isValidURI: firstParam]) {
-                // Open app with valid uri name
+            if ([self isValidJsonObject:firstParam]) {
                 [self openAPP:firstParam];
+                
+            } else if ([self isValidURI: firstParam]) {
+                // Open app with valid uri name
+                [self openURI:firstParam];
                 
             } else if ([firstParam containsString:@"Storyboard"]) {
                 // Init viewController from Storyboard with initial view Controlleror or user defined viewControllerName
@@ -68,7 +71,7 @@
                 [self instantiateViewController:firstParam];
                 
             } else {
-                message = [[NSString alloc] initWithFormat:@"%@ invalid. Must contain a Storyboard / Controller / URI valid in name", firstParam];
+                message = [[NSString alloc] initWithFormat:@"%@ invalid. Must contain a Storyboard / Controller / URI valid in name / Valid Json Object with at least one param of the type: Storyboard / Controller / URI valid in name", firstParam];
                 @throw [[NSException alloc] initWithName:@"IO_EXCEPTION" reason:message userInfo:nil];
             }
             
@@ -224,7 +227,13 @@
     return false;
 }
 
-- (void) openAPP:(NSString *)uriValue {
+- (bool) isValidJsonObject:(NSString *)json {
+    return ([self jsonSerializationWith:json] != nil ? true : false);
+}
+
+
+
+- (void) openURI:(NSString *)uriValue {
     if ([[UIApplication sharedApplication] respondsToSelector:@selector(openURL:options:completionHandler:)]) { // ios >= 10
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:uriValue] options:@{} completionHandler:^(BOOL opened) {
             if (!opened) {
@@ -235,6 +244,48 @@
         }];
     } else { // ios < 10 (Will be depreciated)
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:uriValue]];
+    }
+}
+
+- (NSDictionary *) jsonSerializationWith:(NSString *)stringJson {
+    
+    NSError *error = nil;
+    
+    NSDictionary *jsonObject = [NSJSONSerialization
+                                 JSONObjectWithData: [stringJson dataUsingEncoding:NSUTF8StringEncoding]
+                                 options:kNilOptions
+                                 error:&error];
+    
+    if(!error) {
+        return jsonObject;
+    } else {
+        NSLog(@"Error in parsing JSON");
+        return nil;
+    }
+}
+
+-(bool) keyIsValid:(NSString *)nameKey inJson:(NSDictionary *)jsonObject {
+    return ([jsonObject objectForKey:nameKey] != nil && [[jsonObject objectForKey:nameKey] length] > 0) ? true : false;
+}
+
+- (void) openAPP:(NSString *)json {
+    NSDictionary *jsonObject = [self jsonSerializationWith:json];
+    
+    if ([self isValidURI:[jsonObject objectForKey:@"uri"]]) {
+        [self openURI:[jsonObject objectForKey:@"uri"]];
+        
+    } else if ([self keyIsValid:@"Storyboard" inJson:jsonObject] && [self keyIsValid:@"Controller" inJson:jsonObject]) {
+        [self instantiateViewController:[jsonObject objectForKey:@"Controller"] fromStoryboard:[jsonObject objectForKey:@"Storyboard"]];
+        
+    } else if ([self keyIsValid:@"Storyboard" inJson:jsonObject]) {
+        [self instantiateViewController:nil fromStoryboard:[jsonObject objectForKey:@"Storyboard"]];
+        
+    } else if ([self keyIsValid:@"Controller" inJson:jsonObject]) {
+        [self instantiateViewController:[jsonObject objectForKey:@"Controller"]];
+        
+    } else{
+        NSString *message = [[NSString alloc] initWithFormat:@"%@ invalid. Must contain a Valid Json Object with at least one param of the type: Storyboard / Controller / URI valid in name", json];
+        @throw [[NSException alloc] initWithName:@"IO_EXCEPTION" reason:message userInfo:nil];
     }
 }
 
