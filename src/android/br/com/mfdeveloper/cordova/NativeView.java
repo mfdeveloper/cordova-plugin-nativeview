@@ -8,6 +8,8 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
+import android.os.Handler;
+import android.os.Message;
 import android.util.Log;
 
 import org.apache.cordova.BuildConfig;
@@ -107,7 +109,7 @@ public class NativeView extends CordovaPlugin {
 
         final Intent intentToStart = configureIntent(args, activityParams, callbackContext);
 
-        cordova.getActivity().runOnUiThread(new Runnable() {
+        cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
 
@@ -147,9 +149,18 @@ public class NativeView extends CordovaPlugin {
             targetPackage = activityParams.has("package") ? activityParams.optString("package") : activityParams.optString("packageApp");
         }
 
+        if (targetPackage == null || (targetPackage != null && targetPackage.length() == 0)) {
+            JSONObject error = new JSONObject() {{
+                put("success", false);
+                put("message", "The 'marketId' or 'package' is required");
+            }};
+            callbackContext.error(error);
+            return;
+        }
+
         final Intent intent = new Intent(Intent.ACTION_VIEW);
 
-        cordova.getActivity().runOnUiThread(new Runnable() {
+        cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
                 try {
@@ -196,7 +207,7 @@ public class NativeView extends CordovaPlugin {
 
             callbackContext.success(result);
 
-        }else{
+        } else {
             JSONObject error = new JSONObject() {{
                 put("success", false);
                 put("message", "App not found");
@@ -257,18 +268,21 @@ public class NativeView extends CordovaPlugin {
 
     protected Intent configureIntent(JSONArray args, JSONObject activityParams, CallbackContext callbackContext) throws JSONException {
         Intent intent = new Intent();
+        intent = intentFromUri(intent, activityParams, callbackContext);
 
-        intent = intentFromUri(intent, activityParams, callbackContext)
-                .intentFromClass(intent, activityParams, callbackContext);
+        if (!(intent.getData() instanceof Uri)) {
 
-        String targetPackage = activityParams.has("package") ? activityParams.optString("package") : activityParams.optString("packageApp");
+            String targetPackage = activityParams.has("package") ? activityParams.optString("package") : activityParams.optString("packageApp");
 
-        if (targetPackage != null) {
+            if (targetPackage != null && targetPackage.length() > 0) {
 
-            intent.setPackage(targetPackage);
+                intent.setPackage(targetPackage);
+            }
+
+            intentFromClass(intent, activityParams, callbackContext);
+
+            intent = intentFromComponent(intent, activityParams, callbackContext);
         }
-
-        intent = intentFromComponent(intent, activityParams, callbackContext);
 
         addFlags(intent, activityParams, callbackContext);
 
@@ -299,7 +313,7 @@ public class NativeView extends CordovaPlugin {
         return intent;
     }
 
-    protected NativeView intentFromUri(Intent intent, JSONObject activityParams, CallbackContext callbackContext) throws JSONException {
+    protected Intent intentFromUri(Intent intent, JSONObject activityParams, CallbackContext callbackContext) throws JSONException {
 
         if(activityParams.has("uri")) {
 
@@ -317,10 +331,12 @@ public class NativeView extends CordovaPlugin {
             }
 
             intent.setAction(action);
+            intent.addCategory(Intent.CATEGORY_DEFAULT);
+            intent.addCategory(Intent.CATEGORY_BROWSABLE);
             intent.setData(Uri.parse(activityParams.getString("uri")));
         }
 
-        return this;
+        return intent;
     }
 
     protected Intent intentFromClass(Intent intent, JSONObject activityParams, CallbackContext callbackContext) throws JSONException {
