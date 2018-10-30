@@ -19,11 +19,16 @@
         <engine name="cordova" version=">=3.0.0" />
     </engines>
 
+    <js-module src="www/plugin.nativeview.js" name="NativeView">
+        <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
+        <clobbers target="cordova.plugins.NativeView" />
+    </js-module>
+
     <!-- android -->
     <platform name="android">
-        <js-module src="www/android/plugin.nativeview.js" name="NativeView">
+        <js-module src="www/android/plugin.nativeview.js" name="NativeViewAndroid">
             <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
-            <clobbers target="cordova.plugins.NativeView" />
+            <merges target="cordova.plugins.NativeView" />
         </js-module>
         <config-file target="res/xml/config.xml" parent="/*">
             <feature name="NativeView">
@@ -37,10 +42,6 @@
 
     <!-- ios -->
     <platform name="ios">
-        <js-module src="www/plugin.nativeview.js" name="NativeView">
-            <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
-            <clobbers target="cordova.plugins.NativeView" />
-        </js-module>
         <config-file target="config.xml" parent="/*">
             <feature name="NativeView">
                 <param name="ios-package" value="CDVNativeView" />

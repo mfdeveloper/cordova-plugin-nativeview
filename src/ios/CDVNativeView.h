@@ -22,5 +22,6 @@
 
 - (void)show:(CDVInvokedUrlCommand*)command;
 - (void)checkIfAppInstalled:(CDVInvokedUrlCommand*)command;
+- (void)showMarket:(CDVInvokedUrlCommand*)command;
 
 @end

@@ -1,9 +1,9 @@
-
 var cordova = require('cordova');
 
 var PLUGIN_NAME = 'NativeView';
 
 function NativeView() {
+    
   this.show = function (packageOrClass, className, extraParams, success, error) {
     return new Promise(function (resolve, reject) {
 
@@ -34,4 +34,5 @@ function NativeView() {
   };
 };
 
-module.exports = NativeView;
+module.exports = new NativeView();
+
