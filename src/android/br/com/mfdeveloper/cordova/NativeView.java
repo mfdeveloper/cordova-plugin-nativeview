@@ -280,7 +280,7 @@ public class NativeView extends CordovaPlugin {
                 intent.setPackage(targetPackage);
             }
 
-            intentFromClass(intent, activityParams, callbackContext);
+            intent = intentFromClass(intent, activityParams, callbackContext);
 
             intent = intentFromComponent(intent, activityParams, callbackContext);
         }
@@ -342,33 +342,27 @@ public class NativeView extends CordovaPlugin {
 
     protected Intent intentFromClass(Intent intent, JSONObject activityParams, CallbackContext callbackContext) throws JSONException {
 
-        if (activityParams.has("className")) {
+        if (activityParams.has("className") && activityParams.has("packageName")) {
 
-            Activity activity = null;
+            try {
 
-            if (!activityParams.has("packageName")
-                || activityParams.getString("packageName").contains(cordova.getActivity().getPackageName())) {
-               activity = cordova.getActivity();
+                intent = new Intent(activityParams.optString("packageName") + "." + activityParams.getString("className"));
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+
+            }catch (Exception clsErr) {
+                JSONObject error = errorResult(clsErr);
+
+                callbackContext.error(error);
+                clsErr.printStackTrace();
             }
+        }else{
+            JSONObject error = new JSONObject();
+            error.put("message", "The params 'packageName' and 'className' is required");
+            error.put("sucess", false);
 
-            if(activity != null) {
-                try {
-
-                    Class<?> activityClass = Class.forName(activityParams.getString("packageName") + "." + activityParams.getString("className"));
-                    intent = new Intent(activity, activityClass);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-
-                }catch (Exception clsErr) {
-                    JSONObject error = errorResult(clsErr);
-
-                    callbackContext.error(error);
-                    clsErr.printStackTrace();
-                }
-            }else{
-                ComponentName component = new ComponentName(activityParams.getString("packageName"), activityParams.getString("className"));
-                intent = new Intent().setComponent(component);
-            }
+            callbackContext.error(error);
         }
+
         return intent;
     }
 

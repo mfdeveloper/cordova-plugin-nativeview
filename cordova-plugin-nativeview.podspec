@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "cordova-plugin-nativeview"
-  s.version      = "1.0.2"
+  s.version      = "1.0.5"
   s.summary      = "Start or Back to a native screen/page from app or other app"
 
   # This description is used to generate tags and improve search results.
