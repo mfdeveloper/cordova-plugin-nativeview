@@ -280,7 +280,7 @@ public class NativeView extends CordovaPlugin {
                 intent.setPackage(targetPackage);
             }
 
-            intentFromClass(intent, activityParams, callbackContext);
+            intent = intentFromClass(intent, activityParams, callbackContext);
 
             intent = intentFromComponent(intent, activityParams, callbackContext);
         }
@@ -366,7 +366,7 @@ public class NativeView extends CordovaPlugin {
                 }
             }else{
                 ComponentName component = new ComponentName(activityParams.getString("packageName"), activityParams.getString("className"));
-                intent = new Intent().setComponent(component);
+                intent = intent.setComponent(component);
             }
         }
         return intent;
