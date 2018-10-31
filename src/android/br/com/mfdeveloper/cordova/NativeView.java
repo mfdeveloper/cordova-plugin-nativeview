@@ -159,18 +159,17 @@ public class NativeView extends CordovaPlugin {
         }
 
         final Intent intent = new Intent(Intent.ACTION_VIEW);
-        final String packageName = targetPackage;
 
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    intent.setData(Uri.parse(String.format(marketUrls.get("app"), packageName)));
+                    intent.setData(Uri.parse(String.format(marketUrls.get("app"), targetPackage)));
                     cordova.getActivity().startActivity(intent);
                 } catch (ActivityNotFoundException activityErr) {
 
                     try {
-                        intent.setData(Uri.parse(String.format(marketUrls.get("web"), packageName)));
+                        intent.setData(Uri.parse(String.format(marketUrls.get("web"), targetPackage)));
                         cordova.getActivity().startActivity(intent);
                     }catch (Exception err) {
                         JSONObject error = errorResult(err);
@@ -189,13 +188,13 @@ public class NativeView extends CordovaPlugin {
 
     public void checkIfAppInstalled(JSONArray args, final CallbackContext callbackContext) throws JSONException {
 
-        final JSONObject activityParams = mountParams(args);
-        final Intent intent = configureIntent(args, activityParams, callbackContext);
+        JSONObject activityParams = mountParams(args);
+        Intent intent = configureIntent(args, activityParams, callbackContext);
 
         PackageManager packManager = this.cordova.getActivity().getApplicationContext().getPackageManager();
 
         // Get all activities that respond to the configured Intent (by uri, package etc..)
-        final List<ResolveInfo> listInfo = packManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        List<ResolveInfo> listInfo = packManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 
         if (listInfo.size() > 0) {
 
@@ -280,7 +279,7 @@ public class NativeView extends CordovaPlugin {
                 intent.setPackage(targetPackage);
             }
 
-            intentFromClass(intent, activityParams, callbackContext);
+            intent = intentFromClass(intent, activityParams, callbackContext);
 
             intent = intentFromComponent(intent, activityParams, callbackContext);
         }
@@ -366,7 +365,7 @@ public class NativeView extends CordovaPlugin {
                 }
             }else{
                 ComponentName component = new ComponentName(activityParams.getString("packageName"), activityParams.getString("className"));
-                intent = new Intent().setComponent(component);
+                intent = intent.setComponent(component);
             }
         }
         return intent;
