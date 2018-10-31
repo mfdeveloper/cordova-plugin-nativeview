@@ -159,17 +159,18 @@ public class NativeView extends CordovaPlugin {
         }
 
         final Intent intent = new Intent(Intent.ACTION_VIEW);
+        final String package = targetPackage;
 
         cordova.getThreadPool().execute(new Runnable() {
             @Override
             public void run() {
                 try {
-                    intent.setData(Uri.parse(String.format(marketUrls.get("app"), targetPackage)));
+                    intent.setData(Uri.parse(String.format(marketUrls.get("app"), package)));
                     cordova.getActivity().startActivity(intent);
                 } catch (ActivityNotFoundException activityErr) {
 
                     try {
-                        intent.setData(Uri.parse(String.format(marketUrls.get("web"), targetPackage)));
+                        intent.setData(Uri.parse(String.format(marketUrls.get("web"), package)));
                         cordova.getActivity().startActivity(intent);
                     }catch (Exception err) {
                         JSONObject error = errorResult(err);
@@ -188,13 +189,13 @@ public class NativeView extends CordovaPlugin {
 
     public void checkIfAppInstalled(JSONArray args, final CallbackContext callbackContext) throws JSONException {
 
-        JSONObject activityParams = mountParams(args);
-        Intent intent = configureIntent(args, activityParams, callbackContext);
+        final JSONObject activityParams = mountParams(args);
+        final Intent intent = configureIntent(args, activityParams, callbackContext);
 
         PackageManager packManager = this.cordova.getActivity().getApplicationContext().getPackageManager();
 
         // Get all activities that respond to the configured Intent (by uri, package etc..)
-        List<ResolveInfo> listInfo = packManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
+        final List<ResolveInfo> listInfo = packManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
 
         if (listInfo.size() > 0) {
 
