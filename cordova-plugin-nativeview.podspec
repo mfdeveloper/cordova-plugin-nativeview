@@ -16,7 +16,7 @@ Pod::Spec.new do |s|
   #
 
   s.name         = "cordova-plugin-nativeview"
-  s.version      = "0.0.9"
+  s.version      = "1.0.0"
   s.summary      = "Start or Back to a native screen/page from app or other app"
 
   # This description is used to generate tags and improve search results.
@@ -26,7 +26,8 @@ Pod::Spec.new do |s|
   #   * Finally, don't worry about the indent, CocoaPods strips it!
   s.description  = <<-DESC
   Start or Back to a UIViewController(ios)/Activity(Android) 
-  relative to you cordova app or open other screen/page from other app
+  relative to you cordova app or open other screen/page from other app. You can
+  start another app too (by package, uri scheme...)
                    DESC
 
   s.homepage     = "https://github.com/mfdeveloper/cordova-plugin-nativeview"

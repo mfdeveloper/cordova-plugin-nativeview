@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-nativeview"
-    version="0.0.8">
+    version="1.0.0">
     <name>Cordova NativeView Plugin</name>
     <description>
         Start or Back to a UIViewController(ios)/Activity(Android) 
@@ -23,6 +23,8 @@
         <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
         <clobbers target="cordova.plugins.NativeView" />
     </js-module>
+
+    <hook type="after_prepare" src="scripts/after.prepare.js" />
 
     <!-- android -->
     <platform name="android">
