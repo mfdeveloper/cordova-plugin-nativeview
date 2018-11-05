@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-nativeview"
-    version="1.0.6">
+    version="1.0.7">
     <name>Cordova NativeView Plugin</name>
     <description>
         Start or Back to a UIViewController(ios)/Activity(Android) 
