@@ -1,13 +1,16 @@
+[![npm version](https://badge.fury.io/js/cordova-plugin-nativeview.svg)](https://badge.fury.io/js/cordova-plugin-nativeview)
+[![](https://jitpack.io/v/mfdeveloper/cordova-plugin-nativeview.svg)](https://jitpack.io/#mfdeveloper/cordova-plugin-nativeview)
+
 ---
 title: NativeView
-description: Starts native view from a cordova app.
+description: Starts native view or another app, from a cordova app.
 ---
 
 # cordova-plugin-nativeview
 
-Start or Back to a UIViewController(_ios_) or Activity(_Android_) relative to your cordova app.
+Start an UIViewController(_IOS_) or Activity(_Android_) relative to your cordova app, or an external app (based in [cordova plugin startapp](https://github.com/mfdeveloper/com.lampa.startapp) cordova plugin)
 
-You can use this in a standalone project (basic cordova project), or into a existing native _Android/IOS_ application, like described in [Embed Cordova in native apps](https://cordova.apache.org/docs/en/latest/guide/hybrid/webviews/index.html)
+You can use this in a standalone project (basic cordova project), or into an existing native _Android/IOS_ application, like described in [Embed Cordova in native apps](https://cordova.apache.org/docs/en/latest/guide/hybrid/webviews/index.html)
 
 > **OBS:** If you wish just **EXIT** from cordova app or back to native view (Android only), use: `navigator['app'].exitApp()`
 
@@ -41,9 +44,9 @@ Make sure that `config.xml` file contains the `<feature>` tag below:
 
 ```ruby
 # Objective-C version (Default)
-pod 'cordova-plugin-nativeview', '~> 0.0.8'
+pod 'cordova-plugin-nativeview', '~> 1.0.7'
 
-# Swift version (work in progress)
+# Swift version (needs update to latest Objective-c implementations)
 pod 'cordova-plugin-nativeview', :git => 'https://github.com/mfdeveloper/cordova-plugin-nativeview.git', :branch => 'swift'
 ```
 
@@ -60,7 +63,7 @@ allprojects {
     }
 }
 
-implementation ('com.github.mfdeveloper:cordova-plugin-nativeview:0.0.8')
+implementation ('com.github.mfdeveloper:cordova-plugin-nativeview:1.0.7')
 ```
 > This dependency is added using [jitpack](https://jitpack.io)
 
@@ -97,9 +100,13 @@ Or add, the `NativeView` class directly to your android project:
 
 ## Methods
 
-## NativeView.show(string packageOrClassName, string className)
+### NativeView.show(packageOrClassName: string, className: string)
 
-Shows a native view.
+OR
+
+### NativeView.show(params: object)
+
+> Shows a native view.
 
 
 ### ANDROID
@@ -124,6 +131,13 @@ document.addEventListener("deviceready", function() {
          * error.message => A exception message
          */
     });
+
+    // Preferably, pass the Package and Activity in a json
+    cordova.plugins.NativeView.show({
+        packageName: 'com.mycompany',
+        className: 'MyActivity',
+    });
+
 }, false);
 
 ```
@@ -150,6 +164,12 @@ document.addEventListener("deviceready", function() {
        */
     });
 
+    // Preferably, pass the ViewController and Storyboard in a json
+    cordova.plugins.NativeView.show({
+        storyboardName: 'MyStoryboard',
+        viewControllerName: 'MyUIViewController'
+    });
+
 }, false);
 
 ```
@@ -168,6 +188,11 @@ document.addEventListener("deviceready", function() {
 * .
 */
 cordova.plugins.NativeView.show('MyUIViewController');
+
+// Preferably, pass the ViewController in a json
+cordova.plugins.NativeView.show({
+    viewControllerName: 'MyUIViewController'
+});
 ```
 
 - Pass only the `Storyboard` name
@@ -183,11 +208,111 @@ cordova.plugins.NativeView.show('MyUIViewController');
 *  string in any part of the name
 */
 cordova.plugins.NativeView.show('MyStorboard');
+
+// Preferably, pass the Storyboard in a json
+cordova.plugins.NativeView.show({
+    storyboardName: 'MyStorboard'
+});
 ````
+
+### NativeView.checkIfAppInstalled(uri: string)
+
+OR
+
+### NativeView.checkIfAppInstalled(params: { uri: string })
+
+> Verify if another app that responds to a `uri` is installed on device.
+
+```js
+
+cordova.plugins.NativeView.checkIfAppInstalled('another-app://custom-host')
+.then(function() {
+    console.log('The app is INSTALLED!');
+}).catch(function(error) {
+    console.log("The app is NOT INSTALLED!");
+    throw error;
+});
+
+// Preferably, pass the uri in a json
+cordova.plugins.NativeView.show({
+    uri: 'another-app://custom-host'
+});
+```
+
+### NativeView.showMarket(marketId: string)
+
+OR
+
+### NativeView.showMarket(params: { marketId: string })
+
+> Open the store (Apple Store/Google Play) app installed in your device, or in a browser.
+
+### ANDROID
+
+```js
+
+// Pass a app package on Android (found this on Google Play)
+cordova.plugins.NativeView.showMarket('my.company.other.app');
+
+// Preferably, pass the marketId in a json
+cordova.plugins.NativeView.show({
+    marketId: 'my.company.other.app'
+});
+```
+
+### IOS
+
+```js
+
+// Pass a app id from the Apple Store
+cordova.plugins.NativeView.showMarket('idxyz1?mt=x');
+
+// Preferably, pass the marketId in a json
+cordova.plugins.NativeView.showMarket({
+    marketId: 'idxyz1?mt=x'
+});
+```
+
+### NativeView.getBuildVariant(params: { catchError: boolean })
+
+> Get the current Android build variant configured in 
+
+### ANDROID (ONLY)
+
+```js
+
+/*
+* Pass the param "catchError", and use the `catch()` method to verify an 
+* error (if happens)
+*
+* Otherwise, this method will return the variant like a string,
+* or null if not found.
+*
+* This is useful if you need show a NativeView by environment
+*/
+cordova.plugins.NativeView.getBuildVariant({
+    catchError: true
+}).then(function(value) {
+    console.log('My environment is: ' + value);
+}).catch(function(error) {
+    if (!error.success && error.message) {
+        console.log(error.message);
+    }
+});
+
+/* Optionally, don't pass any parameter and get the Build Variant 
+ * value, or NULL
+ */
+cordova.plugins.NativeView.getBuildVariant()
+.then(function(value) {
+    console.log('My environment is: ' + value);
+});
+```
 
 ### IONIC
 
 Replace `document.addEventListener` event to `this.platform.ready().then(...)` service method. See [IONIC Platform documentation](https://ionicframework.com/docs/api/platform/Platform/)
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
@@ -195,3 +320,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## TODO
 
 - [x] Better catch IOS exception from JS
+- [ ] Update `Swift` implementation
+- [ ] Add cordova integration tests
+ 
