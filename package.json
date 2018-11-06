@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-nativeview",
-  "version": "0.0.4",
+  "version": "1.0.8",
   "types": "./types/index.d.ts",
   "description": "Start or Back to a native screen/page",
   "author": {
@@ -33,5 +33,15 @@
     "cordova-android",
     "cordova-ios"
   ],
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "np": "^3.0.4",
+    "plugman": "^2.0.0"
+  },
+  "scripts": {
+    "release": "./node_modules/.bin/np"
+  },
+  "dependencies": {
+    "gists": "^2.0.0"
+  }
 }

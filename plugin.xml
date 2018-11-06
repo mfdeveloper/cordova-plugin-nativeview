@@ -2,7 +2,7 @@
 
 <plugin xmlns="http://apache.org/cordova/ns/plugins/1.0"
     id="cordova-plugin-nativeview"
-    version="0.0.4">
+    version="1.0.8">
     <name>Cordova NativeView Plugin</name>
     <description>
         Start or Back to a UIViewController(ios)/Activity(Android) 
@@ -24,16 +24,22 @@
         <clobbers target="cordova.plugins.NativeView" />
     </js-module>
 
+    <hook type="after_prepare" src="scripts/after.prepare.js" />
+
     <!-- android -->
     <platform name="android">
-      <config-file target="res/xml/config.xml" parent="/*">
-        <feature name="NativeView">
-          <param name="android-package" value="br.com.mfdeveloper.cordova.NativeView" />
-          <param name="onload" value="true" />
-        </feature>
-      </config-file>
+        <js-module src="www/android/plugin.nativeview.js" name="NativeViewAndroid">
+            <!-- This is the window variable name you want, like window.MyCordovaPlugin -->
+            <merges target="cordova.plugins.NativeView" />
+        </js-module>
+        <config-file target="res/xml/config.xml" parent="/*">
+            <feature name="NativeView">
+            <param name="android-package" value="br.com.mfdeveloper.cordova.NativeView" />
+            <param name="onload" value="true" />
+            </feature>
+        </config-file>
 
-      <source-file src="src/android/br/com/mfdeveloper/cordova/NativeView.java" target-dir="src/br/com/mfdeveloper/cordova" />
+        <source-file src="src/android/br/com/mfdeveloper/cordova/NativeView.java" target-dir="src/br/com/mfdeveloper/cordova" />
     </platform>
 
     <!-- ios -->
@@ -45,9 +51,7 @@
             </feature>
         </config-file>
         
-         <header-file src="src/ios/CDVNativeView.h" />
-         <source-file src="src/ios/CDVNativeView.m" />
-         <header-file src="src/ios/InstantiateViewControllerError.h" />
-         <source-file src="src/ios/InstantiateViewControllerError.m" />
+        <header-file src="src/ios/CDVNativeView.h" />
+        <source-file src="src/ios/CDVNativeView.m" />
     </platform>
 </plugin>
