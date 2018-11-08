@@ -36,7 +36,10 @@
   "license": "MIT",
   "devDependencies": {
     "np": "^3.0.4",
-    "plugman": "^2.0.0"
+    "plugman": "^2.0.0",
+    "cryptiles": ">=4.1.2",
+    "hoek": ">=4.2.1",
+    "cached-path-relative": ">=1.0.2"
   },
   "scripts": {
     "release": "./node_modules/.bin/np"
