@@ -379,16 +379,16 @@ public class NativeView extends CordovaPlugin {
         flags.put(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
         for(int i=0; i < flags.length(); i++) {
-            int flagValue;
+            Integer flagValue;
             try{
 
                 if (flags.get(i) instanceof String) {
-                    flagValue = (int) getIntentValue(flags.getString(i));
+                    flagValue = (Integer) getIntentValue(flags.getString(i));
                 }else{
                     flagValue = flags.getInt(i);
                 }
 
-                intent.addFlags(flagValue);
+                intent.addFlags(flagValue.intValue());
             }catch (Exception intentErr) {
                 JSONObject error = errorResult(intentErr);
                 callbackContext.error(error);
