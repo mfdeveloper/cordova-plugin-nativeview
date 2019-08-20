@@ -167,11 +167,29 @@ public class NativeView extends CordovaPlugin {
                 try {
                     intent.setData(Uri.parse(String.format(marketUrls.get("app"), packageName)));
                     cordova.getActivity().startActivity(intent);
+
+                    JSONObject result = new JSONObject() {{
+                        put("success", true);
+                        put("uri", intent.getData().toString());
+                        put("package", packageName);
+                    }};
+
+                    callbackContext.success(result);
+
                 } catch (ActivityNotFoundException activityErr) {
 
                     try {
                         intent.setData(Uri.parse(String.format(marketUrls.get("web"), packageName)));
                         cordova.getActivity().startActivity(intent);
+
+                        JSONObject result = new JSONObject() {{
+                            put("success", true);
+                            put("uri", intent.getData().toString());
+                            put("package", packageName);
+                        }};
+
+                        callbackContext.success(result);
+
                     }catch (Exception err) {
                         JSONObject error = errorResult(err);
                         callbackContext.error(error);

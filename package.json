@@ -1,7 +1,8 @@
 {
   "name": "cordova-plugin-nativeview",
   "version": "1.0.11",
-  "types": "./types/index.d.ts",
+  "typings": "types",
+  "types": "types",
   "description": "Start or Back to a native screen/page",
   "author": {
     "name": "Michel Felipe",
@@ -15,7 +16,8 @@
     ]
   },
   "engines": {
-    "cordova": ">=3.0.0"
+    "cordova": ">=6.0.0",
+    "cordova-res": ">=0.6.0"
   },
   "repository": {
     "type": "git",
@@ -35,16 +37,25 @@
   ],
   "license": "MIT",
   "devDependencies": {
+    "@types/cordova": "0.0.34",
+    "cached-path-relative": ">=1.0.2",
+    "cryptiles": ">=4.1.2",
+    "dtslint": "^0.9.1",
+    "fstream": "^1.0.12",
+    "hoek": ">=4.2.1",
+    "lodash": "^4.17.15",
     "np": "^3.0.4",
     "plugman": "^2.0.0",
-    "cryptiles": ">=4.1.2",
-    "hoek": ">=4.2.1",
-    "cached-path-relative": ">=1.0.2"
+    "tar": "^4.4.10",
+    "tunnel-agent": "^0.6.0",
+    "typescript": "^3.5.3"
   },
   "scripts": {
-    "release": "./node_modules/.bin/np"
+    "release": "./node_modules/.bin/np",
+    "dtslint": "dtslint --localTs node_modules/typescript/lib types"
   },
   "dependencies": {
+    "cordova": "^9.0.0",
     "gists": "^2.0.0"
   }
 }
