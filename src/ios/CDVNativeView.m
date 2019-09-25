@@ -286,9 +286,6 @@
         message = [[NSString alloc] initWithFormat:@"UIViewController with name %@ was not found", viewControllerName];
         @throw [[NSException alloc] initWithName:@"ParamInvalidException" reason:message userInfo:nil];
     }
-    
-    NSString* message = [[NSString alloc] initWithFormat:@"The ViewController: %@ was not found", name];
-    @throw [[InstantiateViewControllerError alloc] initWithName: @"notFound" reason: message userInfo: nil];
 }
 
 - (void) instantiateViewController:(NSString *)viewControllerName fromStoryboard:(NSString *)storyboardName {
