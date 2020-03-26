@@ -110,7 +110,8 @@ var platformConfig = (function(){
             'android-theme': {target: 'AndroidManifest.xml', parent: 'application/activity[@android:name=\'CordovaApp\']', destination: 'android:theme'},
             'android-windowSoftInputMode': {target: 'AndroidManifest.xml', parent: 'application/activity[@android:name=\'CordovaApp\']', destination: 'android:windowSoftInputMode'}
         },
-        'ios': {}
+        'ios': {},
+        'browser': {}
     };
 
     /*  Global object that defines tags that should be added and not replaced
