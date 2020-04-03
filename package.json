@@ -1,6 +1,6 @@
 {
   "name": "cordova-plugin-nativeview",
-  "version": "1.0.11",
+  "version": "1.0.12",
   "typings": "types",
   "types": "types",
   "description": "Start or Back to a native screen/page",
@@ -48,7 +48,10 @@
     "plugman": "^2.0.0",
     "tar": "^4.4.10",
     "tunnel-agent": "^0.6.0",
-    "typescript": "^3.5.3"
+    "typescript": "^3.5.3",
+    "acorn": ">=5.7.4",
+    "kind-of": ">=6.0.3",
+    "minimist": ">=1.2.2"
   },
   "scripts": {
     "release": "./node_modules/.bin/np",
