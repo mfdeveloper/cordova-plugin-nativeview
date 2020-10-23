@@ -1,0 +1,5 @@
+android {
+    defaultConfig {
+        buildConfigField "long", "BUILD_DATE", System.currentTimeMillis() + "L"
+    }
+}

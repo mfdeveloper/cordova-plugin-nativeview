@@ -40,6 +40,7 @@
         </config-file>
 
         <source-file src="src/android/br/com/mfdeveloper/cordova/NativeView.java" target-dir="src/br/com/mfdeveloper/cordova" />
+        <framework src="src/android/NativeView.gradle" custom="true" type="gradleReference"/>
     </platform>
 
     <!-- ios -->

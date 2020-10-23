@@ -1,23 +1,18 @@
 package br.com.mfdeveloper.cordova;
 
-import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 
-import org.apache.cordova.BuildConfig;
+import org.apache.cordova.BuildHelper;
 import org.apache.cordova.CallbackContext;
 import org.apache.cordova.CordovaInterface;
 import org.apache.cordova.CordovaPlugin;
 import org.apache.cordova.CordovaWebView;
-import org.apache.cordova.PluginResult;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -37,7 +32,7 @@ import java.util.List;
  * Based and inspired by cordova plugin: com.lampa.startapp
  *
  * @author @mfdeveloper on 28/08/17
- * @see https://github.com/lampaa/com.lampa.startapp
+ * @see  <a href="https://github.com/lampaa/com.lampa.startapp">com.lampa.startapp cordova plugin</a>
  */
 public class NativeView extends CordovaPlugin {
 
@@ -65,23 +60,12 @@ public class NativeView extends CordovaPlugin {
 
                 return true;
 
-            } catch (IllegalAccessException e) {
+            } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                 JSONObject error = errorResult(e);
                 callbackContext.error(error);
 
                 e.printStackTrace();
 
-            } catch (IllegalArgumentException e) {
-                JSONObject error = errorResult(e);
-                callbackContext.error(error);
-
-                e.printStackTrace();
-
-            }catch (InvocationTargetException e) {
-                JSONObject error = errorResult(e);
-                callbackContext.error(error);
-
-                e.printStackTrace();
             }
         }catch (NoSuchMethodException e) {
 
@@ -149,7 +133,7 @@ public class NativeView extends CordovaPlugin {
             targetPackage = activityParams.has("package") ? activityParams.optString("package") : activityParams.optString("packageApp");
         }
 
-        if (targetPackage == null || (targetPackage != null && targetPackage.length() == 0)) {
+        if (targetPackage.isEmpty()) {
             JSONObject error = new JSONObject() {{
                 put("success", false);
                 put("message", "The 'marketId' or 'package' is required");
@@ -240,6 +224,8 @@ public class NativeView extends CordovaPlugin {
 
     public void getBuildVariant(JSONArray args, final CallbackContext callbackContext) {
 
+        String flavor = (String) BuildHelper.getBuildConfigValue(cordova.getActivity(), "FLAVOR");
+
         if (args.length() > 0) {
 
             try{
@@ -248,7 +234,7 @@ public class NativeView extends CordovaPlugin {
 
                 if (params.has("catchError") && params.optBoolean("catchError", true)) {
 
-                    if (BuildConfig.FLAVOR == null || BuildConfig.FLAVOR.length() == 0) {
+                    if (flavor == null || flavor.isEmpty()) {
 
                         JSONObject error = new JSONObject();
                         error.put("success", false);
@@ -267,7 +253,7 @@ public class NativeView extends CordovaPlugin {
         }
 
 
-        callbackContext.success(BuildConfig.FLAVOR);
+        callbackContext.success(flavor);
     }
 
     protected JSONObject mountParams(JSONArray args) throws JSONException {
@@ -289,11 +275,11 @@ public class NativeView extends CordovaPlugin {
         Intent intent = new Intent();
         intent = intentFromUri(intent, activityParams, callbackContext);
 
-        if (!(intent.getData() instanceof Uri)) {
+        if (intent.getData() == null) {
 
             String targetPackage = activityParams.has("package") ? activityParams.optString("package") : activityParams.optString("packageApp");
 
-            if (targetPackage != null && targetPackage.length() > 0) {
+            if (!targetPackage.isEmpty()) {
 
                 intent.setPackage(targetPackage);
             }
@@ -406,7 +392,7 @@ public class NativeView extends CordovaPlugin {
                     flagValue = flags.getInt(i);
                 }
 
-                intent.addFlags(flagValue.intValue());
+                intent.addFlags(flagValue);
             }catch (Exception intentErr) {
                 JSONObject error = errorResult(intentErr);
                 callbackContext.error(error);
@@ -471,8 +457,7 @@ public class NativeView extends CordovaPlugin {
 
         data.putAll(extraData);
 
-        JSONObject error = new JSONObject(data);
-        return error;
+        return new JSONObject(data);
     }
 
     protected Object getIntentValue(String flag) throws NoSuchFieldException, IllegalAccessException {
