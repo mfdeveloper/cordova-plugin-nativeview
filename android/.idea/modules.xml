@@ -2,9 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/android.iml" filepath="$PROJECT_DIR$/android.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/lib/lib.iml" filepath="$PROJECT_DIR$/lib/lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1376337720/android.app.iml" filepath="$PROJECT_DIR$/.idea/modules/1376337720/android.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/1376348060/android.lib.iml" filepath="$PROJECT_DIR$/.idea/modules/1376348060/android.lib.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/-1829492058/cordova-plugin-nativeview.android.iml" filepath="$PROJECT_DIR$/.idea/modules/-1829492058/cordova-plugin-nativeview.android.iml" />
     </modules>
   </component>
 </project>

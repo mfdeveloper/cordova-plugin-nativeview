@@ -1,5 +1,6 @@
 package br.com.mfdeveloper.cordova;
 
+import android.app.Activity;
 import android.content.ActivityNotFoundException;
 import android.content.ComponentName;
 import android.content.Intent;
@@ -23,6 +24,13 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 /**
  * Start a native Activity. This plugin
@@ -36,16 +44,40 @@ import java.util.List;
  */
 public class NativeView extends CordovaPlugin {
 
-    private static final String TAG = "NativeViewPlugin";
     protected HashMap<String, String> marketUrls = new HashMap<String, String>() {{
         put("app", "market://details?id=%s");
         put("web", "https://play.google.com/store/apps/details?id=%s");
     }};
+    protected static CordovaPlugin instance = null;
+    protected Activity activity;
+    private static final String SERVICE_NAME = NativeView.class.getName();
+    private static final String TAG = NativeView.class.getName() + "Plugin";
+
+    public static synchronized NativeView getInstance(Activity activity) {
+
+        if (instance == null) {
+            instance = new NativeView(activity);
+            instance = getPlugin(instance);
+        }
+
+        return (NativeView) instance;
+    }
+
+    private NativeView(Activity activity) {
+
+        if (activity != null) {
+            this.activity = activity;
+        }
+    }
 
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
 
-        Log.d(TAG, "Initializing " + TAG);
+        if (cordova != null) {
+            activity = cordova.getActivity();
+        }
+
+        Log.d(TAG, "Initializing Cordova Plugin " + TAG);
     }
 
     public boolean execute(String action, JSONArray args, final CallbackContext callbackContext) {
@@ -104,7 +136,7 @@ public class NativeView extends CordovaPlugin {
                      *
                      * @see https://www.journaldev.com/10463/android-notification-pendingintent
                      */
-                    cordova.getActivity().startActivity(intentToStart);
+                    activity.startActivity(intentToStart);
                     JSONObject success = new JSONObject();
                     success.put("success", true);
                     success.put("message", "Native screen is started");
@@ -119,6 +151,68 @@ public class NativeView extends CordovaPlugin {
 
             }
         });
+    }
+
+    /**
+     * TODO: Avoid "ActivityNotFoundException" from Java to Kotlin Activity
+     * @see <a href="https://winterbe.com/posts/2015/04/07/java8-concurrency-tutorial-thread-executor-examples/#callables-and-futures">Java 8 Concurrency Tutorial: Threads and Executors</a>
+     * @param params
+     * @throws {@link ExecutionException}, {@link InterruptedException}
+     */
+    public JSONObject show(JSONObject params) throws ExecutionException, InterruptedException, TimeoutException {
+
+//        try {
+//            Class<?> c = Class.forName("br.com.mfdeveloper.cordova.view.OtherActivity");
+//            String name = c.getSuperclass().getName();
+//        } catch (ClassNotFoundException e) {
+//            e.printStackTrace();
+//        }
+
+        final Intent intentToStart;
+        try {
+            //TODO: Refactor this to use without "CallbackContext" cordova class and empty JSONArray parameter
+            intentToStart = configureIntent(new JSONArray(), params, null);
+        } catch (JSONException e) {
+            return errorResult(e);
+        }
+
+        Callable<JSONObject> task = new Callable<JSONObject>() {
+            @Override
+            public JSONObject call() {
+
+                try {
+                    /**
+                     * Reference: You can use "PendingIntent" to avoid open the Activity twice,
+                     * but the ActivityNotFound exception is never catch
+                     *
+                     * @see <a href="https://www.journaldev.com/10463/android-notification-pendingintent">Android Notification, PendingIntent Example
+                     * 13 Comments</a>
+                     */
+                    activity.startActivity(intentToStart);
+                    JSONObject success = new JSONObject();
+                    success.put("success", true);
+                    success.put("message", "Native screen is started");
+
+                    return success;
+                } catch (JSONException e) {
+
+                    JSONObject error = errorResult(e);
+                    e.printStackTrace();
+
+                    return error;
+                }
+            }
+        };
+
+        ExecutorService executor = Executors.newCachedThreadPool();
+        Future<JSONObject> future = executor.submit(task);
+
+        JSONObject result = future.get(2, TimeUnit.SECONDS);
+        if (future.isDone()) {
+            return result;
+        }
+
+        return null;
     }
 
     public void showMarket(JSONArray args, final CallbackContext callbackContext) throws JSONException {
@@ -150,7 +244,7 @@ public class NativeView extends CordovaPlugin {
             public void run() {
                 try {
                     intent.setData(Uri.parse(String.format(marketUrls.get("app"), packageName)));
-                    cordova.getActivity().startActivity(intent);
+                    activity.startActivity(intent);
 
                     JSONObject result = new JSONObject() {{
                         put("success", true);
@@ -164,7 +258,7 @@ public class NativeView extends CordovaPlugin {
 
                     try {
                         intent.setData(Uri.parse(String.format(marketUrls.get("web"), packageName)));
-                        cordova.getActivity().startActivity(intent);
+                        activity.startActivity(intent);
 
                         JSONObject result = new JSONObject() {{
                             put("success", true);
@@ -194,7 +288,7 @@ public class NativeView extends CordovaPlugin {
         final JSONObject activityParams = mountParams(args);
         final Intent intent = configureIntent(args, activityParams, callbackContext);
 
-        PackageManager packManager = this.cordova.getActivity().getApplicationContext().getPackageManager();
+        PackageManager packManager = activity.getApplicationContext().getPackageManager();
 
         // Get all activities that respond to the configured Intent (by uri, package etc..)
         final List<ResolveInfo> listInfo = packManager.queryIntentActivities(intent, PackageManager.MATCH_DEFAULT_ONLY);
@@ -224,7 +318,7 @@ public class NativeView extends CordovaPlugin {
 
     public void getBuildVariant(JSONArray args, final CallbackContext callbackContext) {
 
-        String flavor = (String) BuildHelper.getBuildConfigValue(cordova.getActivity(), "FLAVOR");
+        String flavor = (String) BuildHelper.getBuildConfigValue(activity, "FLAVOR");
 
         if (args.length() > 0) {
 
@@ -254,6 +348,18 @@ public class NativeView extends CordovaPlugin {
 
 
         callbackContext.success(flavor);
+    }
+
+    public static CordovaPlugin getPlugin(CordovaPlugin plugin) {
+
+        if (plugin.webView != null) {
+
+            instance = plugin.webView.getPluginManager().getPlugin(SERVICE_NAME);
+        } else {
+            instance = plugin;
+        }
+
+        return instance;
     }
 
     protected JSONObject mountParams(JSONArray args) throws JSONException {
@@ -311,8 +417,12 @@ public class NativeView extends CordovaPlugin {
                 error.put("success", false);
                 error.put("message", "The 'component' key needs contains 'packageApp' and 'className' args");
 
-                callbackContext.error(error);
-                throw new RuntimeException(error.getString("message"));
+                //TODO: Refactor this to use without "CallbackContext" cordova class
+                if (callbackContext != null) {
+                    callbackContext.error(error);
+                } else {
+                    throw new RuntimeException(error.optString("message"));
+                }
             }
         }
         return intent;
@@ -329,7 +439,13 @@ public class NativeView extends CordovaPlugin {
                     action = (String) getIntentValue(activityParams.optString("action"));
                 }catch (Exception intentErr) {
                     JSONObject error = errorResult(intentErr);
-                    callbackContext.error(error);
+
+                    if (callbackContext != null) {
+
+                        callbackContext.error(error);
+                    } else {
+                        throw new RuntimeException(error.optString("message"));
+                    }
 
                     intentErr.printStackTrace();
                 }
@@ -360,11 +476,18 @@ public class NativeView extends CordovaPlugin {
                 clsErr.printStackTrace();
             }
         }else{
+
             JSONObject error = new JSONObject();
             error.put("message", "The params 'packageName' and 'className' is required");
             error.put("sucess", false);
 
-            callbackContext.error(error);
+            //TODO: Refactor this to use without "CallbackContext" cordova class
+            if (callbackContext != null) {
+
+                callbackContext.error(error);
+            } else {
+                throw new RuntimeException(error.optString("message"));
+            }
         }
 
         return intent;
@@ -395,7 +518,13 @@ public class NativeView extends CordovaPlugin {
                 intent.addFlags(flagValue);
             }catch (Exception intentErr) {
                 JSONObject error = errorResult(intentErr);
-                callbackContext.error(error);
+
+                //TODO: Refactor this to use without "CallbackContext" cordova class
+                if (callbackContext != null) {
+                    callbackContext.error(error);
+                } else {
+                    throw new RuntimeException(error.optString("message"));
+                }
             }
         }
 

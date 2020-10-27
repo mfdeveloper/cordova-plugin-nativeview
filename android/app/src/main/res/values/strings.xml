@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NativeViewExample</string>
+    <string name="title_activity_other">OtherActivity</string>
+    <string name="label_activity_other">Other Activity</string>
 </resources>
